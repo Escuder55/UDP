@@ -24,8 +24,11 @@
 ///////////////////// CONEXIONES
 #define MAX_MENSAJES 30
 #define IP "192.168.56.1"
-#define IP_CLASE "10.40.0.99"
-#define PORT 50000
+//#define IP "127.0.0.1"
+//#define IP_CLASE "10.40.0.99"
+#define IP_CLASE "127.0.0.1"
+//#define PORT 50000
+#define PORT 50001
 
 enum Direcciones
 {
@@ -66,4 +69,10 @@ enum TypeScene
 	GOTO_PLAY,
 	EXIT
 
+};
+
+enum PROTOCOLO
+{
+	HELLO,
+	WELCOME
 };

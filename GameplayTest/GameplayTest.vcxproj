@@ -27,6 +27,8 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Maps.cpp" />
     <ClCompile Include="Menu.cpp" />
+    <ClCompile Include="Mensaje.cpp" />
+    <ClCompile Include="PlayerProxy.cpp" />
     <ClCompile Include="Scene.cpp" />
     <ClCompile Include="SignUp.cpp" />
   </ItemGroup>
@@ -39,6 +41,8 @@
     <ClInclude Include="LogIn.h" />
     <ClInclude Include="Maps.h" />
     <ClInclude Include="Menu.h" />
+    <ClInclude Include="Mensaje.h" />
+    <ClInclude Include="PlayerProxy.h" />
     <ClInclude Include="Scene.h" />
     <ClInclude Include="SignUp.h" />
   </ItemGroup>

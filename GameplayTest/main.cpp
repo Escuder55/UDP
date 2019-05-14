@@ -1,6 +1,9 @@
 #include <SFML\Graphics.hpp>
 #include <SFML/Network.hpp>
 #include <string>
+#include <stack>
+#include <thread>
+#include <list>
 #include <cstring>
 #include <iostream>
 #include <vector>
@@ -13,6 +16,24 @@
 #include "Menu.h"
 #include "SignUp.h"
 #include "Maps.h"
+#include "Mensaje.h"
+#include "PlayerProxy.h"
+
+//PACKET SOBRECARGADO
+sf::Packet& operator <<(sf::Packet& packet, const PROTOCOLO& orders)
+{
+	int option = static_cast<int>(orders);
+	return packet << option;
+}
+sf::Packet& operator >>(sf::Packet& packet, PROTOCOLO& orders)
+{
+	int option = static_cast<int>(orders);
+	return packet >> option;
+}
+
+
+/////////////////////////////////////////// VARIABLES COMPARTIDAS
+PROTOCOLO orders;
 
 //////////////////////////////////////////	VARIABLES PARA EL CLIENTE
 sf::Socket::Status status;
@@ -20,55 +41,164 @@ sf::Packet pack;
 sf::UdpSocket socket;
 
 //////////////////////////////////////////	VARIABLES PARA EL SERVER
-struct players
-{
-	sf::IpAddress IP_Adress;
-	unsigned int port;
-	int id;
-	int posX;
-	int posY;
-};
+//PLAYER PROXIES
+std::vector<PlayerProxy> playersConnecteds;
 
-std::vector<players> playersConnecteds;
+//MENSAJES CRITICOS
+std::list<std::stack<Mensaje>> paquetes_criticos;
+
+//MENSAJES NORMALES
+std::list<std::stack<Mensaje>> paquetes_normales;
+
+
+//THREAD RECEIVE SERVER
+void ServerReceive()
+{
+	int numPlayers = 0;
+	//// ------------------------ MENSAJE RECIBIDO ----------------- ////
+	PlayerProxy auxPlayerProxy;
+	PROTOCOLO orders;
+	sf::Packet pack;
+	sf::IpAddress adress;
+	unsigned short port;
+
+	std::cout << "ENTRO EN EL THREAD" << std::endl;
+
+	while (numPlayers < 3)
+	{
+		status = socket.receive(pack, adress, port);
+		
+		std::cout << "Adress: " << adress << std::endl;
+		std::cout << "Port: " << port << std::endl;
+
+		if (status == sf::Socket::Done)
+		{
+			//PROTOCOLO A DAR
+			int auxOrder;
+			pack >> auxOrder;
+			orders = static_cast<PROTOCOLO>(auxOrder);
+
+			//COMPROBACION
+			std::cout << "He recibido lo siguiente: "  << auxOrder << std::endl;
+
+			switch (orders)
+			{
+			case PROTOCOLO::HELLO:
+				numPlayers++;
+				//GUARDAMOS INFO DE CONEXION DEL PLAYER
+				auxPlayerProxy.IP_Adress = adress;
+				auxPlayerProxy.port = port;
+				auxPlayerProxy.id = numPlayers;
+				playersConnecteds.push_back(auxPlayerProxy);
+				pack.clear();
+
+				orders = PROTOCOLO::WELCOME;
+
+				pack << orders << auxPlayerProxy.id;
+				socket.send(pack, playersConnecteds[numPlayers - 1].IP_Adress, playersConnecteds[numPlayers - 1].port);
+
+				break;
+				default:
+					break;
+			}
+		}
+		else if(status == sf::Socket::Done)
+		{
+			std::cout << "No he recibido nada" << std::endl;
+		}
+	}
+}
+
+//////////////////////////////////////////
+////////////////////////////////////////// SERVER
+//////////////////////////////////////////
+void serverMain()
+{
+	sf::UdpSocket socket;
+	sf::Socket::Status status;
+
+	status = socket.bind(PORT);
+	if (status != sf::Socket::Done)
+	{
+		std::cout << "no se puede hacer bind bien con el puerto" << PORT << std::endl;
+	}
+
+	//THREAD RECEIVE
+	std::thread threadServer(&ServerReceive);
+	threadServer.detach();
+
+	while (1)
+	{
+
+	}
+}
+
+//THREAD RECEIVE CLIENT
+void ClientReceive()
+{
+
+}
+
 //////////////////////////////////////////
 ////////////////////////////////////////// CLIENT
 //////////////////////////////////////////
 void clienteMain()
 {
+	////  ------------- PROXY --------------- ////
+	PlayerProxy proxy;
+
+	////  ------------- MENSAJE --------------- ////
+	sf::Packet pack;
+
 	////////Nos guardamos la IP y el puerto del Server
-	sf::IpAddress adreesServer = IP_CLASE;
-	unsigned short port = PORT;
+	proxy.IP_Adress = IP_CLASE;
+	proxy.port = PORT;
 
 	////////////////////////////////para protocolo
-	std::string protocolo = "HELLO";
-	std::string name;
-
-	std::cout << "Write your name" << std::endl;
-	std::cin >> name;
-
-	pack << protocolo << name;
+	pack << PROTOCOLO::HELLO;
 
 	///////////////////////////////////////////////////conectamos con el server
-	status = socket.send(pack, adreesServer, port);
+	status = socket.send(pack, proxy.IP_Adress, proxy.port);
 	if (status != sf::Socket::Done)
 	{
 		std::cout << "No se ha podido enviar el mensaje" << std::endl;
 	}
+	else
+	{
+		std::cout << "Se ha enviado el mensaje" << std::endl;
+	}
 
-	status = socket.receive(pack, adreesServer, port);
+	//COMPROBACION
+
+	status = socket.receive(pack, proxy.IP_Adress, proxy.port);
 	if (status != sf::Socket::Done)
 	{
-		std::cout << "No se ha podido enviar el mensaje" << std::endl;
+		std::cout << "No se ha podido recibir el mensaje" << std::endl;
 	}
-	int idPlayer;
-
-	pack >> protocolo >> idPlayer >> name;
-
-	if (protocolo == "WELCOME")
+	else
 	{
-		std::cout << "El servidor te da la bienvenida " << name << " y te asigna la siguiente ID: " << idPlayer << std::endl;
+		std::cout << "Se ha recibido el mensaje" << std::endl;
 	}
 
+	//RECOGEMOS VARIABLES
+	int auxOrder;
+	pack >> auxOrder;
+	pack >> proxy.id;
+
+	orders = static_cast<PROTOCOLO>(auxOrder);
+
+	switch (orders)
+	{
+		case PROTOCOLO::WELCOME:
+			std::cout << "El servidor te da la bienvenida con el siguiente id: " << proxy.id << std::endl;
+			break;
+		default:
+		break;
+	}
+
+	//THREAD RECEIVE
+	std::thread threadClient(&ClientReceive);
+	threadClient.detach();
 
 	///////condición del bucle 
 	bool finish = false;
@@ -167,67 +297,9 @@ void clienteMain()
 	else if (answer == "7")myCharacterType = 7;
 	else if (answer == "8")myCharacterType = 8;*/
 
-
-
 	//currentScene = new Game(static_cast<CharacterType>(myCharacterType));
 
 	//currentScene->DrawScene();	
-}
-
-
-//////////////////////////////////////////
-////////////////////////////////////////// SERVER
-//////////////////////////////////////////
-void serverMain()
-{
-	sf::UdpSocket socket;
-	sf::Socket::Status status;
-
-	status = socket.bind(PORT);
-	if (status != sf::Socket::Done)
-	{
-		std::cout << "no se puede hacer bind bien con el puerto 50000" << std::endl;
-	}
-	int numPlayers = 0;
-	////////////////////////////////varibles protocolo
-	std::string protocolo;
-	std::string name;
-	sf::Packet pack;
-	sf::IpAddress adress;
-	unsigned short port;
-
-	while (numPlayers < 3)
-	{
-		status = socket.receive(pack, adress, port);
-		if (status == sf::Socket::Done)
-		{
-
-			pack >> protocolo;
-			if (protocolo == "HELLO")
-			{
-				numPlayers++;
-				playersConnecteds.push_back({ adress, port ,numPlayers, numPlayers, numPlayers });
-
-				pack >> name;
-
-				std::cout << "Welcome To " << name << std::endl;
-
-				pack.clear();
-
-				protocolo = "WELCOME";
-				int id = numPlayers;
-
-				pack << protocolo << id << name;				
-				socket.send(pack, playersConnecteds[numPlayers - 1].IP_Adress, playersConnecteds[numPlayers - 1].port);
-			}
-
-		}
-	}
-
-	while (true)
-	{
-
-	}
 }
 
 void main()
