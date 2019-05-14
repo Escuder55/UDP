@@ -21,6 +21,12 @@
 	#define SPRITE_CHARACTER_WIDTH 52
 	#define SPRITE_CHARACTER_HEIGHT 72
 
+///////////////////// CONEXIONES
+#define MAX_MENSAJES 30
+#define IP "192.168.56.1"
+#define IP_CLASE "10.40.0.99"
+#define PORT 50000
+
 enum Direcciones
 {
 	NONE,

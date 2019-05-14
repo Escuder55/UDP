@@ -10,6 +10,8 @@
 
 #define MAX_MENSAJES 30
 #define PORT 50000
+////////////////////////////////////////////////////////////////////////////////////////   SERVER
+
 
 ////////////////////////////////////JUGADORES
 struct players
@@ -32,7 +34,7 @@ void main()
 	status = socket.bind(PORT);
 	if(status != sf::Socket::Done)
 	{
-		std::cout << "no se puede hacer bind bien con el puerto 52000" << std::endl;
+		std::cout << "no se puede hacer bind bien con el puerto 50000" << std::endl;
 	}
 	int numPlayers = 0;
 	////////////////////////////////varibles protocolo

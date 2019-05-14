@@ -418,8 +418,16 @@ void SignUp::InputControl(sf::RenderWindow * window)
 				mousePosition.y = event.mouseButton.y;
 				if ( skin.length() > 0 && CheckButtonClicked(mousePosition))
 				{
-					myTypeScene = TypeScene::GOTO_MENU;
-					window->close();
+					if (passwordAnswer != repeatPasswordAnswer)
+					{
+						myTypeScene = TypeScene::GOTO_SIGN_UP;
+						window->close();
+					}
+					else
+					{
+						myTypeScene = TypeScene::GOTO_MENU;
+						window->close();
+					}
 				}
 			}
 			break;
