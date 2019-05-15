@@ -19,6 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="BD.cpp" />
     <ClCompile Include="Bullet.cpp" />
     <ClCompile Include="Character.cpp" />
     <ClCompile Include="FirstChoice.cpp" />
@@ -33,6 +34,7 @@
     <ClCompile Include="SignUp.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="BD.h" />
     <ClInclude Include="Bullet.h" />
     <ClInclude Include="Character.h" />
     <ClInclude Include="Constants.h" />
@@ -116,11 +118,11 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(Solutiondir)\deps64\include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(Solutiondir)\cppconnector\include;$(Solutiondir)\deps64\include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <AdditionalLibraryDirectories>$(Solutiondir)\deps64\lib</AdditionalLibraryDirectories>
-      <AdditionalDependencies>sfml-graphics-d.lib;sfml-window-d.lib;sfml-system-d.lib;sfml-network-d.lib;ws2_32.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(Solutiondir)\cppconnector\lib64\vs14;$(Solutiondir)\deps64\lib</AdditionalLibraryDirectories>
+      <AdditionalDependencies>mysqlcppconn.lib;sfml-graphics-d.lib;sfml-window-d.lib;sfml-system-d.lib;sfml-network-d.lib;ws2_32.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">

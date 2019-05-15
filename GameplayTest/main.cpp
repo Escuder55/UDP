@@ -18,6 +18,7 @@
 #include "Maps.h"
 #include "Mensaje.h"
 #include "PlayerProxy.h"
+#include "BD.h"
 
 //PACKET SOBRECARGADO
 sf::Packet& operator <<(sf::Packet& packet, const PROTOCOLO& orders)
@@ -114,6 +115,14 @@ void ServerReceive()
 //////////////////////////////////////////
 void serverMain()
 {	
+
+	//CONECTAMOS A BASE DE DATOS
+	sql::SQLString HOSTBD = "tcp://www.db4free.net:3306";
+	sql::SQLString USERNAMEBD = "puajklejos";
+	sql::SQLString PASSWORDBD = "Puajklejos95*";
+	sql::SQLString DATABASEBD = "practicaredes";
+
+	BD BaseDatos(HOSTBD, USERNAMEBD, PASSWORDBD, DATABASEBD);
 
 	status = socket.bind(PORT);
 	if (status != sf::Socket::Done)
