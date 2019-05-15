@@ -3,6 +3,7 @@
 #include <jdbc/mysql_driver.h>
 #include <jdbc/cppconn/resultset.h>
 #include <jdbc/cppconn/statement.h>
+#include <jdbc/cppconn/prepared_statement.h>
 
 class BD
 {
@@ -17,12 +18,15 @@ public:
 	sql::Driver* driver;
 	sql::Connection* conn;
 
-	sql::Statement* stmt;
-	sql::ResultSet* res;
+	sql::PreparedStatement *prep_stmt = nullptr;
+	sql::Statement* stmt = nullptr;
+	sql::ResultSet* res = nullptr;
 
 	//METODOS
 	BD(sql::SQLString PHost, sql::SQLString PUsername, sql::SQLString PPassword, sql::SQLString PDataBase);
-	void CheckUser();
+	bool CheckUser(sql::SQLString UserToSearch);
+	void InsertNewUser(sql::SQLString user, sql::SQLString password, int Skin);
+	bool LoginUser(sql::SQLString user, sql::SQLString password);
 	~BD();
 };
 

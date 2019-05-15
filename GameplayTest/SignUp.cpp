@@ -430,7 +430,18 @@ void SignUp::InputControl(sf::RenderWindow * window)
 						//ENVIAMOS PAQUETE DE REGISTRO
 						/*pack << PROTOCOLO::REGISTER;
 						pack << passwordAnswer;
-						pack << userAnswer;*/
+						pack << userAnswer;
+						pack << skin;
+
+						sf::Socket::Status status = socket.send(pack, proxy.IP_Adress, proxy.port);
+						if (status != sf::Socket::Done)
+						{
+							std::cout << "No se ha podido enviar el mensaje" << std::endl;
+						}
+						else
+						{
+							std::cout << "Se ha enviado el mensaje" << std::endl;
+						}*/
 
 						myTypeScene = TypeScene::GOTO_MENU;
 						window->close();

@@ -40,6 +40,7 @@ PROTOCOLO orders;
 sf::Socket::Status status;
 sf::Packet pack;
 sf::UdpSocket socket;
+PlayerProxy proxy;
 
 //////////////////////////////////////////	VARIABLES PARA EL SERVER
 //PLAYER PROXIES
@@ -72,6 +73,10 @@ void ServerReceive()
 
 		if (status == sf::Socket::Done)
 		{
+			//VARIABLES A UTILIZAR
+			std::string username;
+			std::string password;
+
 			std::cout << "Adress: " << adress << std::endl;
 			std::cout << "Port: " << port << std::endl;
 			//PROTOCOLO A DAR
@@ -97,8 +102,15 @@ void ServerReceive()
 
 				pack << orders << auxPlayerProxy.id;
 				socket.send(pack, playersConnecteds[numPlayers - 1].IP_Adress, playersConnecteds[numPlayers - 1].port);
-					break;
+				break;
+			case PROTOCOLO::REGISTER:
+				pack >> username;
+				pack >> password;
 
+				//COMPROVACION
+				std::cout << username << std::endl;
+				std::cout << password << std::endl;
+			break;
 				default:
 					break;
 			}
@@ -147,7 +159,35 @@ void serverMain()
 //THREAD RECEIVE CLIENT
 void ClientReceive()
 {
+	while (true)
+	{
+		//COMPROBACION
+		sf::Socket::Status status;
+		status = socket.receive(pack, proxy.IP_Adress, proxy.port);
+		if (status != sf::Socket::Done)
+		{
+			std::cout << "No se ha podido recibir el mensaje" << std::endl;
+		}
+		else
+		{
+			std::cout << "Se ha recibido el mensaje" << std::endl;
+			//RECOGEMOS VARIABLES
+			int auxOrder;
+			pack >> auxOrder;
+			pack >> proxy.id;
 
+			orders = static_cast<PROTOCOLO>(auxOrder);
+
+			switch (orders)
+			{
+			case PROTOCOLO::WELCOME:
+				std::cout << "El servidor te da la bienvenida con el siguiente id: " << proxy.id << std::endl;
+				break;
+			default:
+				break;
+			}
+		}
+	}
 }
 
 //////////////////////////////////////////
@@ -155,9 +195,6 @@ void ClientReceive()
 //////////////////////////////////////////
 void clienteMain()
 {
-	////  ------------- PROXY --------------- ////
-	PlayerProxy proxy;
-
 	////  ------------- MENSAJE --------------- ////
 	sf::Packet pack;
 
@@ -171,6 +208,7 @@ void clienteMain()
 	///////////////////////////////////////////////////conectamos con el server
 	sf::Socket::Status statusConfirmation = sf::Socket::NotReady;
 
+	//// ESTO SE TIENE QUE HACER CADA X TIEMPO
 	while (statusConfirmation != sf::Socket::Done)
 	{
 		status = socket.send(pack, proxy.IP_Adress, proxy.port);
@@ -181,40 +219,10 @@ void clienteMain()
 		else
 		{
 			std::cout << "Se ha enviado el mensaje" << std::endl;
-
-
-			//COMPROBACION
-
-			statusConfirmation = socket.receive(pack, proxy.IP_Adress, proxy.port);
-			if (statusConfirmation != sf::Socket::Done)
-			{
-				std::cout << "No se ha podido recibir el mensaje" << std::endl;
-			}
-			else
-			{
-				std::cout << "Se ha recibido el mensaje" << std::endl;
-			}
 		}
 
 	}
 	
-
-	//RECOGEMOS VARIABLES
-	int auxOrder;
-	pack >> auxOrder;
-	pack >> proxy.id;
-
-	orders = static_cast<PROTOCOLO>(auxOrder);
-
-	switch (orders)
-	{
-		case PROTOCOLO::WELCOME:
-			std::cout << "El servidor te da la bienvenida con el siguiente id: " << proxy.id << std::endl;
-			break;
-		default:
-		break;
-	}
-
 	//THREAD RECEIVE
 	std::thread threadClient(&ClientReceive);
 	threadClient.detach();
