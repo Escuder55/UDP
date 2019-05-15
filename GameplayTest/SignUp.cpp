@@ -1,6 +1,5 @@
 #include "SignUp.h"
-
-
+#include "Mensaje.h"
 
 SignUp::SignUp()
 {
@@ -401,6 +400,9 @@ bool SignUp::CheckButtonClicked(sf::Vector2f posClick)
 
 void SignUp::InputControl(sf::RenderWindow * window)
 {
+	//PAQUETE
+	sf::Packet pack;
+
 	sf::Event event;
 	sf::Vector2f mousePosition;
 
@@ -425,6 +427,11 @@ void SignUp::InputControl(sf::RenderWindow * window)
 					}
 					else
 					{
+						//ENVIAMOS PAQUETE DE REGISTRO
+						/*pack << PROTOCOLO::REGISTER;
+						pack << passwordAnswer;
+						pack << userAnswer;*/
+
 						myTypeScene = TypeScene::GOTO_MENU;
 						window->close();
 					}

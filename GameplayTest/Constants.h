@@ -74,5 +74,7 @@ enum TypeScene
 enum PROTOCOLO
 {
 	HELLO,
-	WELCOME
+	WELCOME,
+	REGISTER,
+	LOGIN
 };
