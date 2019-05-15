@@ -66,13 +66,13 @@ void ServerReceive()
 
 	while (numPlayers < 3)
 	{
-		status = socket.receive(pack, adress, port);
-		
-		std::cout << "Adress: " << adress << std::endl;
-		std::cout << "Port: " << port << std::endl;
+
+		status = socket.receive(pack, adress, port);	
 
 		if (status == sf::Socket::Done)
 		{
+			std::cout << "Adress: " << adress << std::endl;
+			std::cout << "Port: " << port << std::endl;
 			//PROTOCOLO A DAR
 			int auxOrder;
 			pack >> auxOrder;
@@ -96,15 +96,15 @@ void ServerReceive()
 
 				pack << orders << auxPlayerProxy.id;
 				socket.send(pack, playersConnecteds[numPlayers - 1].IP_Adress, playersConnecteds[numPlayers - 1].port);
+					break;
 
-				break;
 				default:
 					break;
 			}
 		}
-		else if(status == sf::Socket::Done)
+		else if(status != sf::Socket::Done)
 		{
-			std::cout << "No he recibido nada" << std::endl;
+			//std::cout << "No he recibido nada" << std::endl;
 		}
 	}
 }
@@ -113,14 +113,16 @@ void ServerReceive()
 ////////////////////////////////////////// SERVER
 //////////////////////////////////////////
 void serverMain()
-{
-	sf::UdpSocket socket;
-	sf::Socket::Status status;
+{	
 
 	status = socket.bind(PORT);
 	if (status != sf::Socket::Done)
 	{
 		std::cout << "no se puede hacer bind bien con el puerto" << PORT << std::endl;
+	}
+	else
+	{
+		std::cout << "Se hace bind bien con el puerto" << PORT << std::endl;
 	}
 
 	//THREAD RECEIVE
@@ -158,27 +160,35 @@ void clienteMain()
 	pack << PROTOCOLO::HELLO;
 
 	///////////////////////////////////////////////////conectamos con el server
-	status = socket.send(pack, proxy.IP_Adress, proxy.port);
-	if (status != sf::Socket::Done)
-	{
-		std::cout << "No se ha podido enviar el mensaje" << std::endl;
-	}
-	else
-	{
-		std::cout << "Se ha enviado el mensaje" << std::endl;
-	}
+	sf::Socket::Status statusConfirmation = sf::Socket::NotReady;
 
-	//COMPROBACION
+	while (statusConfirmation != sf::Socket::Done)
+	{
+		status = socket.send(pack, proxy.IP_Adress, proxy.port);
+		if (status != sf::Socket::Done)
+		{
+			std::cout << "No se ha podido enviar el mensaje" << std::endl;
+		}
+		else
+		{
+			std::cout << "Se ha enviado el mensaje" << std::endl;
 
-	status = socket.receive(pack, proxy.IP_Adress, proxy.port);
-	if (status != sf::Socket::Done)
-	{
-		std::cout << "No se ha podido recibir el mensaje" << std::endl;
+
+			//COMPROBACION
+
+			statusConfirmation = socket.receive(pack, proxy.IP_Adress, proxy.port);
+			if (statusConfirmation != sf::Socket::Done)
+			{
+				std::cout << "No se ha podido recibir el mensaje" << std::endl;
+			}
+			else
+			{
+				std::cout << "Se ha recibido el mensaje" << std::endl;
+			}
+		}
+
 	}
-	else
-	{
-		std::cout << "Se ha recibido el mensaje" << std::endl;
-	}
+	
 
 	//RECOGEMOS VARIABLES
 	int auxOrder;
@@ -319,10 +329,13 @@ void main()
 
 	if (answer == "c" || answer == "C")
 	{
+		std::cout << "Has escogido ser un cliente" << std::endl;
 		clienteMain();
+		
 	}
 	else if (answer == "s" || answer == "S")
 	{
+		std::cout << "Has escogido ser el servidor" << std::endl;
 		serverMain();
 	}
 	
