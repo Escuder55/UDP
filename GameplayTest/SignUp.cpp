@@ -242,7 +242,7 @@ void SignUp::InitText()
 	passwordText.setCharacterSize(35);
 	passwordText.setFillColor(sf::Color(0, 200, 0));
 	passwordText.setStyle(sf::Text::Bold);
-	passwordText.setPosition(sf::Vector2f( 75, 150));
+	passwordText.setPosition(sf::Vector2f( 50, 150));
 	//////////////////////////////////////////////////////////////////////////////INICIALIZAR RECUADRO DE ESCRITURA
 	passwordRect.setSize(sf::Vector2f(300, 50));
 	passwordRect.setFillColor(sf::Color(255, 255, 255, 255));
@@ -268,7 +268,7 @@ void SignUp::InitText()
 	repeatPasswordText.setCharacterSize(35);
 	repeatPasswordText.setFillColor(sf::Color(0, 200, 0));
 	repeatPasswordText.setStyle(sf::Text::Bold);
-	repeatPasswordText.setPosition(sf::Vector2f( 75, 250));
+	repeatPasswordText.setPosition(sf::Vector2f( 50, 250));
 	//////////////////////////////////////////////////////////////////////////////INICIALIZAR RECUADRO DE ESCRITURA
 	repeatPasswordRect.setSize(sf::Vector2f(300, 50));
 	repeatPasswordRect.setFillColor(sf::Color(255, 255, 255, 255));
