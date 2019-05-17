@@ -5,7 +5,7 @@ class LogIn :
 {
 public:
 	LogIn();
-	LogIn(int i);
+	LogIn(int i, sf::UdpSocket* _socket);
 	~LogIn();
 
 	TypeScene DrawScene();
@@ -15,7 +15,12 @@ public:
 	void DrawSprites();
 	bool CheckButtonClicked(sf::Vector2f posClick);
 	void InputControl(sf::RenderWindow* window);
+	void sendPacket(sf::Packet &pack, sf::IpAddress _IP, unsigned short _port);
 private:
+	//////////////////////////puntero a socket;
+	sf::UdpSocket *socket;
+
+
 	sf::Texture buttonTexture;
 	sf::Sprite buttonSprite;
 

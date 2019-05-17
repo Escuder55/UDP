@@ -32,7 +32,7 @@ sf::Packet& operator >>(sf::Packet& packet, PROTOCOLO& orders)
 	return packet >> option;
 }
 
-
+TypeScene sceneState;
 /////////////////////////////////////////// VARIABLES COMPARTIDAS
 PROTOCOLO orders;
 
@@ -43,6 +43,7 @@ sf::UdpSocket socket;
 PlayerProxy proxy;
 
 //////////////////////////////////////////	VARIABLES PARA EL SERVER
+//// CURRENTTIMESTAMP para fecha
 //PLAYER PROXIES
 std::vector<PlayerProxy> playersConnecteds;
 
@@ -51,6 +52,9 @@ std::list<std::stack<Mensaje>> paquetes_criticos;
 
 //MENSAJES NORMALES
 std::list<std::stack<Mensaje>> paquetes_normales;
+
+//LOGIN/REGISTER
+bool YouCanLogin;
 
 
 //THREAD RECEIVE SERVER
@@ -64,9 +68,19 @@ void ServerReceive()
 	sf::IpAddress adress;
 	unsigned short port;
 
+	//// ------------- BASE DE DATOS ------------------ //
+	sql::SQLString HOSTBD = "tcp://www.db4free.net:3306";
+	sql::SQLString USERNAMEBD = "puajklejos";
+	sql::SQLString PASSWORDBD = "Puajklejos95*";
+	sql::SQLString DATABASEBD = "practicaredes";
+	BD BaseDatos(HOSTBD, USERNAMEBD, PASSWORDBD, DATABASEBD);
+	// VARIABLES BASE DE DATOS
+	sql::SQLString SQLusername;
+	sql::SQLString SQLpassword;
+
 	std::cout << "ENTRO EN EL THREAD" << std::endl;
 
-	while (numPlayers < 3)
+	while (true)
 	{
 
 		status = socket.receive(pack, adress, port);	
@@ -111,6 +125,28 @@ void ServerReceive()
 				std::cout << username << std::endl;
 				std::cout << password << std::endl;
 			break;
+			case PROTOCOLO::LOGIN:
+				pack >> username;
+				pack >> password;
+
+				SQLusername = username.c_str();
+				SQLpassword = password.c_str();
+
+				//COMPROVACION
+				std::cout << "Log in User:		" << username << std::endl;
+				std::cout << "Log in Password:	" << password << std::endl;
+
+				//CONSULTA 
+				YouCanLogin = BaseDatos.LoginUser(SQLusername, SQLpassword);
+				std::cout << "El usuario puede entrar? " << YouCanLogin << std::endl;
+
+				//SEND TO CLIENT
+				pack.clear();
+				pack << PROTOCOLO::LOGINACCEPTED << auxPlayerProxy.id << YouCanLogin;
+				socket.send(pack, playersConnecteds[numPlayers - 1].IP_Adress, playersConnecteds[numPlayers - 1].port);
+
+			break;
+
 				default:
 					break;
 			}
@@ -127,15 +163,6 @@ void ServerReceive()
 //////////////////////////////////////////
 void serverMain()
 {	
-
-	//CONECTAMOS A BASE DE DATOS
-	sql::SQLString HOSTBD = "tcp://www.db4free.net:3306";
-	sql::SQLString USERNAMEBD = "puajklejos";
-	sql::SQLString PASSWORDBD = "Puajklejos95*";
-	sql::SQLString DATABASEBD = "practicaredes";
-
-	BD BaseDatos(HOSTBD, USERNAMEBD, PASSWORDBD, DATABASEBD);
-
 	status = socket.bind(PORT);
 	if (status != sf::Socket::Done)
 	{
@@ -183,6 +210,11 @@ void ClientReceive()
 			case PROTOCOLO::WELCOME:
 				std::cout << "El servidor te da la bienvenida con el siguiente id: " << proxy.id << std::endl;
 				break;
+			case PROTOCOLO::LOGINACCEPTED:
+				pack >> YouCanLogin;
+				std::cout << "Me puedo conectar: " << YouCanLogin << std::endl;
+
+				break;
 			default:
 				break;
 			}
@@ -211,7 +243,7 @@ void clienteMain()
 	//// ESTO SE TIENE QUE HACER CADA X TIEMPO
 	while (statusConfirmation != sf::Socket::Done)
 	{
-		status = socket.send(pack, proxy.IP_Adress, proxy.port);
+		statusConfirmation = socket.send(pack, proxy.IP_Adress, proxy.port);
 		if (status != sf::Socket::Done)
 		{
 			std::cout << "No se ha podido enviar el mensaje" << std::endl;
@@ -236,7 +268,7 @@ void clienteMain()
 	std::string answer;
 	int myCharacterType;
 
-	TypeScene sceneState = TypeScene::FIRST_CHOICE;
+	sceneState = TypeScene::FIRST_CHOICE;
 
 	currentScene = new FirstChoice(1);
 	while (finish == false)
@@ -284,7 +316,7 @@ void clienteMain()
 		case GOTO_LOG_IN:
 			std::cout << "Nos vamos a la escena Log In" << std::endl;
 			sceneState = TypeScene::LOG_IN;
-			currentScene = new LogIn(1);
+			currentScene = new LogIn(1, &socket);
 			break;
 
 		case GOTO_SIGN_UP:

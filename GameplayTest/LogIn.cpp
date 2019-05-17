@@ -7,8 +7,10 @@ LogIn::LogIn()
 	InitSprites();
 }
 
-LogIn::LogIn(int i)
+LogIn::LogIn(int i, sf::UdpSocket* _socket)
 {
+	socket = _socket;
+
 	InitWindow();
 	InitSprites();
 	InitText();
@@ -156,6 +158,18 @@ void LogIn::InputControl(sf::RenderWindow * window)
 				mousePosition.y = event.mouseButton.y;
 				if (CheckButtonClicked(mousePosition))
 				{
+					///// ------------- PROBANDO LA FUNCIÓN DE ENVIO DE PACKETS ------------- /////
+					std::string mensaje = "El Marti es un flipado";
+					sf::IpAddress adres = IP;
+					unsigned short port = PORT;
+
+					sf::Packet pack;
+					
+					pack << mensaje;
+
+					sendPacket(pack, adres, port);
+
+					///// ------------- VAMOS A LA ESCENA MENU ------------- /////
 					myTypeScene = TypeScene::GOTO_MENU;
 					window->close();
 				}
@@ -205,4 +219,20 @@ void LogIn::InputControl(sf::RenderWindow * window)
 			break;
 		}
 	}
+}
+
+void LogIn::sendPacket(sf::Packet &pack, sf::IpAddress _IP, unsigned short _port)
+{
+	std::string mensaje;
+	pack >> mensaje;
+
+	std::cout << "El mensaje que se ha recibido es : \n		" << mensaje << std::endl;
+
+	pack.clear();
+
+	pack <<  PROTOCOLO::LOGIN << userAnswer << passwordAnswer;
+
+	socket->send(pack, _IP, _port);
+	
+	
 }
