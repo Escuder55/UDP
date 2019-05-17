@@ -6,7 +6,7 @@ class SignUp :
 {
 public:
 	SignUp();
-	SignUp(int i);
+	SignUp(int i, sf::UdpSocket* _socket);
 	~SignUp();
 	void InitSprites();
 	void InitText();
@@ -15,8 +15,11 @@ public:
 	void DrawText();
 	bool CheckButtonClicked(sf::Vector2f posClick);
 	void InputControl(sf::RenderWindow* window);
+	void sendPacket(sf::Packet &pack, sf::IpAddress _IP, unsigned short _port);
 
 private:
+	//////////////////////////puntero a socket;
+	sf::UdpSocket *socket;
 
 	sf::Font myFont;
 

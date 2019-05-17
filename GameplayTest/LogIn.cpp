@@ -160,7 +160,7 @@ void LogIn::InputControl(sf::RenderWindow * window)
 				if (CheckButtonClicked(mousePosition))
 				{
 					///// ------------- PROBANDO LA FUNCIÓN DE ENVIO DE PACKETS ------------- /////
-					std::string mensaje = "El Marti es un flipado";
+					std::string mensaje = "Prueba";
 					sf::IpAddress adres = IP;
 					unsigned short port = PORT;
 
@@ -171,7 +171,7 @@ void LogIn::InputControl(sf::RenderWindow * window)
 					sendPacket(pack, adres, port);
 
 					///// ------------- VAMOS A LA ESCENA MENU ------------- /////					
-					
+					window->close();
 				}
 			}
 			break;
@@ -222,17 +222,19 @@ void LogIn::InputControl(sf::RenderWindow * window)
 }
 
 void LogIn::sendPacket(sf::Packet &pack, sf::IpAddress _IP, unsigned short _port)
-{
-	std::string mensaje;
-	pack >> mensaje;
-
-	std::cout << "El mensaje que se ha recibido es : \n		" << mensaje << std::endl;
-
+{	
 	pack.clear();
 
 	pack <<  PROTOCOLO::LOGIN << userAnswer << passwordAnswer;
 
-	socket->send(pack, _IP, _port);
-	
+	sf::Socket::Status status = socket->send(pack, _IP, _port);
+	if (status != sf::Socket::Done)
+	{
+		std::cout << "No se ha podido enviar el mensaje" << std::endl;
+	}
+	else
+	{
+		std::cout << "Se ha enviado el mensaje" << std::endl;
+	}	
 	
 }

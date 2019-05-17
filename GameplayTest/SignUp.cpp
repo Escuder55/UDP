@@ -6,8 +6,10 @@ SignUp::SignUp()
 	InitSprites();
 }
 
-SignUp::SignUp(int i)
+SignUp::SignUp(int i, sf::UdpSocket* _socket)
 {
+	socket = _socket;
+
 	InitWindow();
 	InitSprites();
 	InitText();
@@ -428,22 +430,13 @@ void SignUp::InputControl(sf::RenderWindow * window)
 					else
 					{
 						//ENVIAMOS PAQUETE DE REGISTRO
-						/*pack << PROTOCOLO::REGISTER;
-						pack << passwordAnswer;
+						pack << PROTOCOLO::REGISTER;
 						pack << userAnswer;
+						pack << passwordAnswer;
 						pack << skin;
 
-						sf::Socket::Status status = socket.send(pack, proxy.IP_Adress, proxy.port);
-						if (status != sf::Socket::Done)
-						{
-							std::cout << "No se ha podido enviar el mensaje" << std::endl;
-						}
-						else
-						{
-							std::cout << "Se ha enviado el mensaje" << std::endl;
-						}*/
+						sendPacket(pack,IP,PORT);
 
-						myTypeScene = TypeScene::GOTO_MENU;
 						window->close();
 					}
 				}
@@ -536,4 +529,22 @@ void SignUp::InputControl(sf::RenderWindow * window)
 		}
 	}
 
+}
+
+void SignUp::sendPacket(sf::Packet & pack, sf::IpAddress _IP, unsigned short _port)
+{
+	
+	pack << PROTOCOLO::REGISTER << userAnswer << passwordAnswer << skin;
+
+	
+	sf::Socket::Status status = socket->send(pack, _IP, _port);
+
+	if (status != sf::Socket::Done)
+	{
+		std::cout << "No se ha podido enviar el mensaje" << std::endl;
+	}
+	else
+	{
+		std::cout << "Se ha enviado el mensaje" << std::endl;
+	}
 }
