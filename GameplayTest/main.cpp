@@ -56,6 +56,9 @@ std::list<std::stack<Mensaje>> paquetes_normales;
 //LOGIN/REGISTER
 bool YouCanLogin;
 
+////////puntero a la escena actual
+Scene* currentScene;
+
 
 //THREAD RECEIVE SERVER
 void ServerReceive()
@@ -213,6 +216,11 @@ void ClientReceive()
 			case PROTOCOLO::LOGINACCEPTED:
 				pack >> YouCanLogin;
 				std::cout << "Me puedo conectar: " << YouCanLogin << std::endl;
+				if (YouCanLogin == true)
+				{					
+					currentScene->window.close();
+					sceneState = TypeScene::GOTO_MENU;
+				}
 
 				break;
 			default:
@@ -262,9 +270,6 @@ void clienteMain()
 	///////condición del bucle 
 	bool finish = false;
 
-	////////puntero a la escena actual
-	Scene* currentScene;
-
 	std::string answer;
 	int myCharacterType;
 
@@ -283,7 +288,7 @@ void clienteMain()
 			break;
 
 		case LOG_IN:
-			sceneState = currentScene->DrawScene();
+			currentScene->DrawScene();
 			break;
 
 		case SIGN_UP:

@@ -143,6 +143,7 @@ void LogIn::InputControl(sf::RenderWindow * window)
 {
 	sf::Event event;
 	sf::Vector2f mousePosition;
+	myTypeScene = TypeScene::LOG_IN;
 
 	while (window->pollEvent(event))
 	{
@@ -169,9 +170,8 @@ void LogIn::InputControl(sf::RenderWindow * window)
 
 					sendPacket(pack, adres, port);
 
-					///// ------------- VAMOS A LA ESCENA MENU ------------- /////
-					myTypeScene = TypeScene::GOTO_MENU;
-					window->close();
+					///// ------------- VAMOS A LA ESCENA MENU ------------- /////					
+					
 				}
 			}
 			break;
