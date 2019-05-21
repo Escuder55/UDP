@@ -48,17 +48,21 @@ PlayerProxy proxy;
 std::vector<PlayerProxy> playersConnecteds;
 
 //MENSAJES CRITICOS
-std::list<std::stack<Mensaje>> paquetes_criticos;
+//std::list<std::stack<Mensaje>> paquetes_criticos;
 
 //MENSAJES NORMALES
-std::list<std::stack<Mensaje>> paquetes_normales;
+//std::list<std::stack<Mensaje>> paquetes_normales;
 
 //LOGIN/REGISTER
 bool YouCanLogin;
 bool YouCanSignUp;
+int auxId;
+int auxIdPacket;
 
 ////////puntero a la escena actual
 Scene* currentScene;
+
+
 
 
 //THREAD RECEIVE SERVER
@@ -96,6 +100,7 @@ void ServerReceive()
 			//VARIABLES A UTILIZAR
 			std::string username;
 			std::string password;
+			std::string repeatPassword;
 
 			std::cout << "Adress: " << adress << std::endl;
 			std::cout << "Port: " << port << std::endl;
@@ -124,27 +129,50 @@ void ServerReceive()
 				socket.send(pack, playersConnecteds[numPlayers - 1].IP_Adress, playersConnecteds[numPlayers - 1].port);
 				break;
 			case PROTOCOLO::REGISTER:
+				pack >> auxId;
+				pack >> auxIdPacket;
 				pack >> username;
 				pack >> password;
+				pack >> repeatPassword;
 				pack >> skin;
 
-				SQLusername = username.c_str();
-				SQLpassword = password.c_str();
-				SQLSkin = std::atoi(skin.c_str());
+				YouCanSignUp = false;
 
-				//COMPROVACION
-				std::cout << "Register with User:		" << username << std::endl;
-				std::cout << "Register with Password:	" << password << std::endl;
-				std::cout << "Register with Skin:	" << skin << std::endl;
-
-				//CONSULTA 
-				YouCanSignUp = !BaseDatos.CheckUser(SQLusername);
-				std::cout << "El usuario puede registrarse? " << YouCanSignUp << std::endl;
-
-				if (YouCanSignUp)
+				if (password == repeatPassword)
 				{
-					BaseDatos.InsertNewUser(SQLusername, SQLpassword, SQLSkin);
+					SQLusername = username.c_str();
+					SQLpassword = password.c_str();
+					SQLSkin = std::atoi(skin.c_str());
+
+					//COMPROVACION
+					std::cout << "Register with User:		" << username << std::endl;
+					std::cout << "Register with Password:	" << password << std::endl;
+					std::cout << "Register with Skin:	" << skin << std::endl;
+
+					//CONSULTA 
+					YouCanSignUp = !BaseDatos.CheckUser(SQLusername);
+					std::cout << "El usuario puede registrarse? " << YouCanSignUp << std::endl;
+
+					if (YouCanSignUp)
+					{
+						BaseDatos.InsertNewUser(SQLusername, SQLpassword, SQLSkin);
+
+						for (int i = 0; i < playersConnecteds.size(); i++)
+						{
+							if (playersConnecteds[i].IP_Adress == adress)
+							{
+								playersConnecteds[i].userName = username;
+								playersConnecteds[i].skin = SQLSkin;
+
+								std::cout << "EL usuario con id: " << playersConnecteds[i].id
+									<< " \nUser: " << playersConnecteds[i].userName
+									<< " \nSkin: " << playersConnecteds[i].skin << std::endl;
+
+							}
+						}
+					}
 				}
+				
 
 				//SEND TO CLIENT
 				pack.clear();
@@ -152,6 +180,8 @@ void ServerReceive()
 				socket.send(pack, playersConnecteds[numPlayers - 1].IP_Adress, playersConnecteds[numPlayers - 1].port);
 			break;
 			case PROTOCOLO::LOGIN:
+				pack >> auxId;
+				pack >> auxIdPacket;
 				pack >> username;
 				pack >> password;
 
@@ -240,10 +270,14 @@ void ClientReceive()
 				std::cout << "Me puedo conectar: " << YouCanLogin << std::endl;
 				if (YouCanLogin)
 				{					
+
+					currentScene->finishSending = true;
 					sceneState = TypeScene::GOTO_MENU;
 				}
 				else
 				{
+
+					currentScene->finishSending = true;
 					sceneState = TypeScene::GOTO_LOG_IN;
 				}
 
@@ -252,11 +286,13 @@ void ClientReceive()
 				pack >> YouCanSignUp;
 				std::cout << "Me puedo registrar: " << YouCanSignUp << std::endl;
 				if (YouCanSignUp)
-				{
+				{			
+					currentScene->finishSending = true;
 					sceneState = TypeScene::GOTO_MENU;
 				}
 				else
 				{
+					currentScene->finishSending = true;
 					sceneState = TypeScene::GOTO_SIGN_UP;
 				}
 
@@ -316,8 +352,6 @@ void clienteMain()
 	currentScene = new FirstChoice(1);
 	while (finish == false)
 	{
-
-
 		//////////Switch de los estados de las escenes
 		switch (sceneState)
 		{
@@ -355,32 +389,38 @@ void clienteMain()
 			std::cout << "Nos vamos a la escena First Choice" << std::endl;
 			sceneState = TypeScene::FIRST_CHOICE;
 			currentScene = new FirstChoice(1);
+			currentScene->me = proxy;
 			break;
 		case GOTO_LOG_IN:
 			std::cout << "Nos vamos a la escena Log In" << std::endl;
 			sceneState = TypeScene::LOG_IN;
 			currentScene = new LogIn(1, &socket);
+			currentScene->me = proxy;
 			break;
 
 		case GOTO_SIGN_UP:
 			std::cout << "Nos vamos a la escena Sign Up" << std::endl;
 			sceneState = TypeScene::SIGN_UP;
 			currentScene = new SignUp(1, &socket);
+			currentScene->me = proxy;
 			break;
 		case GOTO_MENU:
 			std::cout << "Nos vamos a la escena del Menu" << std::endl;
 			sceneState = TypeScene::MENU;
 			currentScene = new Menu(1);
+			currentScene->me = proxy;
 			break;
 		case GOTO_MAPS:
 			std::cout << "Nos vamos a la escena de Mapas" << std::endl;
 			sceneState = TypeScene::MAPS;
 			currentScene = new Maps(1);
+			currentScene->me = proxy;
 			break;
 		case GOTO_PLAY:
 			std::cout << "Nos vamos a la escena del Juego" << std::endl;
 			sceneState = TypeScene::PLAY;
 			currentScene = new Game(CharacterType::EIGHT);
+			currentScene->me = proxy;
 			break;
 		default:
 			break;

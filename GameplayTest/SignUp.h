@@ -16,7 +16,7 @@ public:
 	bool CheckButtonClicked(sf::Vector2f posClick);
 	void InputControl(sf::RenderWindow* window);
 	void sendPacket(sf::Packet &pack, sf::IpAddress _IP, unsigned short _port);
-
+	
 private:
 	//////////////////////////puntero a socket;
 	sf::UdpSocket *socket;

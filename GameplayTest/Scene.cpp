@@ -29,3 +29,7 @@ TypeScene Scene::DrawScene()
 void Scene::InputControl(sf::RenderWindow * window)
 {
 }
+
+void Scene::sendPacketCritic(sf::Packet & pack, sf::IpAddress _IP, unsigned short _port)
+{
+}

@@ -422,23 +422,19 @@ void SignUp::InputControl(sf::RenderWindow * window)
 				mousePosition.y = event.mouseButton.y;
 				if ( skin.length() > 0 && CheckButtonClicked(mousePosition))
 				{
-					if (passwordAnswer != repeatPasswordAnswer)
-					{
-						myTypeScene = TypeScene::GOTO_SIGN_UP;
-						window->close();
-					}
-					else
-					{
+					
 						//ENVIAMOS PAQUETE DE REGISTRO
 						pack << PROTOCOLO::REGISTER;
+						pack << me.id;
+						pack << me.counterPacket;
 						pack << userAnswer;
 						pack << passwordAnswer;
-						pack << skin;
-
+						pack << repeatPasswordAnswer;
+						pack << skin;						
+						me.counterPacket++;
 						sendPacket(pack,IP,PORT);
 
-						window->close();
-					}
+						window->close();					
 				}
 			}
 			break;
@@ -533,18 +529,25 @@ void SignUp::InputControl(sf::RenderWindow * window)
 
 void SignUp::sendPacket(sf::Packet & pack, sf::IpAddress _IP, unsigned short _port)
 {
-	
-	pack << PROTOCOLO::REGISTER << userAnswer << passwordAnswer << skin;
-
-	
-	sf::Socket::Status status = socket->send(pack, _IP, _port);
-
-	if (status != sf::Socket::Done)
+	startTime = clock();
+	while (!finishSending)
 	{
-		std::cout << "No se ha podido enviar el mensaje" << std::endl;
-	}
-	else
-	{
-		std::cout << "Se ha enviado el mensaje" << std::endl;
+		endTime = clock();
+		clockTicksTaken = endTime - startTime;
+		timeInSeconds = clockTicksTaken / (double)CLOCKS_PER_SEC;
+		if (timeInSeconds>=0.5)
+		{
+			startTime = clock();
+			sf::Socket::Status status = socket->send(pack, _IP, _port);
+
+			if (status != sf::Socket::Done)
+			{
+				std::cout << "No se ha podido enviar el mensaje" << std::endl;
+			}
+			else
+			{
+				std::cout << "Se ha enviado el mensaje" << std::endl;
+			}
+		}		
 	}
 }

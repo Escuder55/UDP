@@ -9,8 +9,6 @@ public:
 	//ATTRIBUTES
 	int id;
 	PROTOCOLO protocol;
-	int posX;
-	int posY;
 	sf::Packet pack;
 
 	Mensaje();

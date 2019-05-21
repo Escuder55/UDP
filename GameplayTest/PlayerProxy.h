@@ -1,4 +1,6 @@
 #pragma once
+#include "Mensaje.h"
+#include <stack>
 #include <SFML/Network.hpp>
 
 class PlayerProxy
@@ -9,7 +11,11 @@ public:
 	sf::IpAddress IP_Adress;
 	unsigned short port;
 	int id;
-
+	std::string userName;
+	int skin;
+	int counterPacket;
+	std::stack<Mensaje> critic_Msg;
+	
 	PlayerProxy();
 	~PlayerProxy();
 };

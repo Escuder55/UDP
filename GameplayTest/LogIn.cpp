@@ -166,7 +166,7 @@ void LogIn::InputControl(sf::RenderWindow * window)
 
 					sf::Packet pack;
 					
-					pack << mensaje;
+					pack << mensaje;////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////Cambiar esto
 
 					sendPacket(pack, adres, port);
 
@@ -223,18 +223,25 @@ void LogIn::InputControl(sf::RenderWindow * window)
 
 void LogIn::sendPacket(sf::Packet &pack, sf::IpAddress _IP, unsigned short _port)
 {	
-	pack.clear();
-
-	pack <<  PROTOCOLO::LOGIN << userAnswer << passwordAnswer;
-
-	sf::Socket::Status status = socket->send(pack, _IP, _port);
-	if (status != sf::Socket::Done)
+	startTime = clock();
+	while (!finishSending)
 	{
-		std::cout << "No se ha podido enviar el mensaje" << std::endl;
+		endTime = clock();
+		clockTicksTaken = endTime - startTime;
+		timeInSeconds = clockTicksTaken / (double)CLOCKS_PER_SEC;
+		if (timeInSeconds >= 0.5)
+		{
+			startTime = clock();
+			sf::Socket::Status status = socket->send(pack, _IP, _port);
+
+			if (status != sf::Socket::Done)
+			{
+				std::cout << "No se ha podido enviar el mensaje" << std::endl;
+			}
+			else
+			{
+				std::cout << "Se ha enviado el mensaje" << std::endl;
+			}
+		}
 	}
-	else
-	{
-		std::cout << "Se ha enviado el mensaje" << std::endl;
-	}	
-	
 }
