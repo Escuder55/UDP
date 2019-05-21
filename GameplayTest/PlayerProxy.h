@@ -15,6 +15,8 @@ public:
 	int skin;
 	int counterPacket;
 	std::stack<Mensaje> critic_Msg;
+	float posX;
+	float posY;
 	
 	PlayerProxy();
 	~PlayerProxy();

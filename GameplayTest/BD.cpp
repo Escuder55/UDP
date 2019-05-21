@@ -78,6 +78,24 @@ bool BD::LoginUser(sql::SQLString user, sql::SQLString password)
 	delete prep_stmt;
 }
 
+int BD::TakeSkin(sql::SQLString user, sql::SQLString password)
+{
+	prep_stmt = conn->prepareStatement("SELECT skin from cuenta WHERE nick = ? && password = ?");
+	prep_stmt->setString(1, user);
+	prep_stmt->setString(2, password);
+	res = prep_stmt->executeQuery();
+	
+	while (res->next())
+	{
+		return res->getInt("skin");
+	}
+
+
+	delete res;
+	delete prep_stmt;
+
+}
+
 
 
 

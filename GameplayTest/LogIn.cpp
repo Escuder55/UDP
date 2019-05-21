@@ -159,16 +159,11 @@ void LogIn::InputControl(sf::RenderWindow * window)
 				mousePosition.y = event.mouseButton.y;
 				if (CheckButtonClicked(mousePosition))
 				{
-					///// ------------- PROBANDO LA FUNCIÓN DE ENVIO DE PACKETS ------------- /////
-					std::string mensaje = "Prueba";
-					sf::IpAddress adres = IP;
-					unsigned short port = PORT;
-
 					sf::Packet pack;
-					
-					pack << mensaje;////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////Cambiar esto
-
-					sendPacket(pack, adres, port);
+					/////////////////////////////////////////////Cambiar esto
+					pack << PROTOCOLO::LOGIN << me.id << me.counterPacket << userAnswer << passwordAnswer;
+					sendPacket(pack, IP, PORT);
+					me.counterPacket++;
 
 					///// ------------- VAMOS A LA ESCENA MENU ------------- /////					
 					window->close();
@@ -224,11 +219,13 @@ void LogIn::InputControl(sf::RenderWindow * window)
 void LogIn::sendPacket(sf::Packet &pack, sf::IpAddress _IP, unsigned short _port)
 {	
 	startTime = clock();
+
 	while (!finishSending)
 	{
 		endTime = clock();
 		clockTicksTaken = endTime - startTime;
 		timeInSeconds = clockTicksTaken / (double)CLOCKS_PER_SEC;
+
 		if (timeInSeconds >= 0.5)
 		{
 			startTime = clock();

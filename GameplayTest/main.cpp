@@ -92,7 +92,7 @@ void ServerReceive()
 
 	while (true)
 	{
-
+		pack.clear();
 		status = socket.receive(pack, adress, port);	
 
 		if (status == sf::Socket::Done)
@@ -110,25 +110,53 @@ void ServerReceive()
 			orders = static_cast<PROTOCOLO>(auxOrder);
 
 			//COMPROBACION
+			
 			std::cout << "He recibido lo siguiente: "  << auxOrder << std::endl;
+
+			bool newPlayer = true;
+			int currentId;
 
 			switch (orders)
 			{
 			case PROTOCOLO::HELLO:
-				numPlayers++;
-				//GUARDAMOS INFO DE CONEXION DEL PLAYER
-				auxPlayerProxy.IP_Adress = adress;
-				auxPlayerProxy.port = port;
-				auxPlayerProxy.id = numPlayers;
-				playersConnecteds.push_back(auxPlayerProxy);
-				pack.clear();
-
+			{
+				//////////////////////////////////////////////////comprobamos si este usuario ya ha enviado más hello
+				for (int i = 0; i < playersConnecteds.size(); i++)
+				{
+					if (playersConnecteds[i].IP_Adress == adress && playersConnecteds[i].port == port)
+					{
+						newPlayer = false;
+						currentId = i;
+					}
+				}
 				orders = PROTOCOLO::WELCOME;
 
-				pack << orders << auxPlayerProxy.id;
-				socket.send(pack, playersConnecteds[numPlayers - 1].IP_Adress, playersConnecteds[numPlayers - 1].port);
+
+				/////////////////si el usuario es nuevo
+				if (newPlayer)
+				{
+					numPlayers++;
+					//GUARDAMOS INFO DE CONEXION DEL PLAYER
+					auxPlayerProxy.IP_Adress = adress;
+					auxPlayerProxy.port = port;
+					auxPlayerProxy.id = numPlayers;
+					playersConnecteds.push_back(auxPlayerProxy);
+					pack.clear();
+
+					pack << orders << auxPlayerProxy.id;
+					socket.send(pack, playersConnecteds[numPlayers - 1].IP_Adress, playersConnecteds[numPlayers - 1].port);
+				}
+				else
+				{
+					pack << orders << playersConnecteds[currentId].id;
+					socket.send(pack, playersConnecteds[currentId].IP_Adress, playersConnecteds[currentId].port);
+				}
+
+
 				break;
+			}
 			case PROTOCOLO::REGISTER:
+			{
 				pack >> auxId;
 				pack >> auxIdPacket;
 				pack >> username;
@@ -172,14 +200,16 @@ void ServerReceive()
 						}
 					}
 				}
-				
+
 
 				//SEND TO CLIENT
 				pack.clear();
 				pack << PROTOCOLO::REGISTERACCEPTED << auxPlayerProxy.id << YouCanSignUp;
 				socket.send(pack, playersConnecteds[numPlayers - 1].IP_Adress, playersConnecteds[numPlayers - 1].port);
-			break;
+				break;
+			}
 			case PROTOCOLO::LOGIN:
+			{
 				pack >> auxId;
 				pack >> auxIdPacket;
 				pack >> username;
@@ -188,20 +218,37 @@ void ServerReceive()
 				SQLusername = username.c_str();
 				SQLpassword = password.c_str();
 
+				std::cout << "He recibido un intento de Login." << std::endl;
 				//COMPROVACION
-				std::cout << "Log in User:		" << username << std::endl;
-				std::cout << "Log in Password:	" << password << std::endl;
+				for (int i = 0; i < playersConnecteds.size(); i++)
+				{
+					if (playersConnecteds[i].id == auxId)
+					{
+						std::cout << "El usuario con id: " << auxId
+							<< "Ha enviado el paquete con id: " << auxIdPacket
+							<< "Log in User:		" << username << std::endl;
+						std::cout << "Log in Password:	" << password << std::endl;
 
-				//CONSULTA 
-				YouCanLogin = BaseDatos.LoginUser(SQLusername, SQLpassword);
-				std::cout << "El usuario puede entrar? " << YouCanLogin << std::endl;
+						//CONSULTA 
+						YouCanLogin = BaseDatos.LoginUser(SQLusername, SQLpassword);
+						std::cout << "El usuario puede entrar? " << YouCanLogin << std::endl;
 
-				//SEND TO CLIENT
-				pack.clear();
-				pack << PROTOCOLO::LOGINACCEPTED << auxPlayerProxy.id << YouCanLogin;
-				socket.send(pack, playersConnecteds[numPlayers - 1].IP_Adress, playersConnecteds[numPlayers - 1].port);
+						playersConnecteds[i].skin = BaseDatos.TakeSkin(SQLusername, SQLpassword);
 
-			break;
+						//SEND TO CLIENT
+						pack.clear();
+						pack << PROTOCOLO::LOGINACCEPTED << auxPlayerProxy.id << YouCanLogin << playersConnecteds[i].skin;
+						socket.send(pack, playersConnecteds[i].IP_Adress, playersConnecteds[i].port);
+
+					}
+					else
+					{
+						std::cout << "he recibido el intento de login pero no coincie con ningun usuario " << std::endl;
+					}
+
+				}
+				break;
+			}
 				default:
 					break;
 			}
@@ -270,7 +317,7 @@ void ClientReceive()
 				std::cout << "Me puedo conectar: " << YouCanLogin << std::endl;
 				if (YouCanLogin)
 				{					
-
+					pack >> proxy.skin;
 					currentScene->finishSending = true;
 					sceneState = TypeScene::GOTO_MENU;
 				}
@@ -280,7 +327,6 @@ void ClientReceive()
 					currentScene->finishSending = true;
 					sceneState = TypeScene::GOTO_LOG_IN;
 				}
-
 				break;
 			case PROTOCOLO::REGISTERACCEPTED:
 				pack >> YouCanSignUp;
@@ -350,6 +396,7 @@ void clienteMain()
 	sceneState = TypeScene::FIRST_CHOICE;
 
 	currentScene = new FirstChoice(1);
+	CharacterType auxType;
 	while (finish == false)
 	{
 		//////////Switch de los estados de las escenes
@@ -419,7 +466,8 @@ void clienteMain()
 		case GOTO_PLAY:
 			std::cout << "Nos vamos a la escena del Juego" << std::endl;
 			sceneState = TypeScene::PLAY;
-			currentScene = new Game(CharacterType::EIGHT);
+			auxType = static_cast<CharacterType>(proxy.skin);
+			currentScene = new Game(auxType);
 			currentScene->me = proxy;
 			break;
 		default:

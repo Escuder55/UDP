@@ -27,6 +27,7 @@ public:
 	bool CheckUser(sql::SQLString UserToSearch);
 	void InsertNewUser(sql::SQLString user, sql::SQLString password, int Skin);
 	bool LoginUser(sql::SQLString user, sql::SQLString password);
+	int TakeSkin(sql::SQLString user, sql::SQLString password);
 	~BD();
 };
 
