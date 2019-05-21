@@ -23,6 +23,7 @@ public:
 	sf::IntRect myRect;
 
 
+
 private:
 	sf::Texture  bgTexture[3];
 	sf::Texture  doorTexture[4];

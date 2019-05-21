@@ -31,6 +31,22 @@ sf::Packet& operator >>(sf::Packet& packet, PROTOCOLO& orders)
 	int option = static_cast<int>(orders);
 	return packet >> option;
 }
+////////////////////////////////////////funcio para encontrar la id del usuario que envia el mensaje
+int getId(sf::IpAddress _adres, unsigned short _port)
+{
+	int ID;
+
+
+	for (int i = 0; i < playersConnecteds.size(); i++)
+	{
+		if (playersConnecteds[i].IP_Adress == _adres && playersConnecteds[i].port == _port)
+		{
+			ID = i;
+		}
+	}
+	return ID;
+}
+
 
 TypeScene sceneState;
 /////////////////////////////////////////// VARIABLES COMPARTIDAS
@@ -63,7 +79,19 @@ int auxIdPacket;
 Scene* currentScene;
 
 
+///////Struct para el game
 
+struct gameProxy
+{
+	int id;
+
+	std::vector<PlayerProxy> players;
+};
+
+std::vector<gameProxy> gamesProxy;
+
+int games = 0;
+gameProxy auxGame;
 
 //THREAD RECEIVE SERVER
 void ServerReceive()
@@ -249,6 +277,19 @@ void ServerReceive()
 				}
 				break;
 			}
+			case PROTOCOLO::WANTPLAY:
+			{
+				for (int i = 0; i < playersConnecteds.size(); )
+				{
+
+				}
+				if (gamesProxy.size() == 0)
+				{					
+
+					//gamesProxy.pushback(auxGame);
+				}
+				break;
+			}
 				default:
 					break;
 			}
@@ -425,7 +466,7 @@ void clienteMain()
 			break;
 
 		case PLAY:
-			sceneState = currentScene->DrawScene();
+			currentScene->DrawScene();
 			break;
 
 		case EXIT:
@@ -460,7 +501,7 @@ void clienteMain()
 		case GOTO_MAPS:
 			std::cout << "Nos vamos a la escena de Mapas" << std::endl;
 			sceneState = TypeScene::MAPS;
-			currentScene = new Maps(1);
+			currentScene = new Maps(1, &socket);
 			currentScene->me = proxy;
 			break;
 		case GOTO_PLAY:

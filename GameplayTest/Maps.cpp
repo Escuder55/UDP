@@ -7,8 +7,10 @@ Maps::Maps()
 	InitSprites();
 }
 
-Maps::Maps(int i)
+Maps::Maps(int i, sf::UdpSocket* _socket)
 {
+	socket = _socket;
+
 	InitWindow();
 	InitSprites();
 }
@@ -116,6 +118,8 @@ void Maps::InputControl(sf::RenderWindow * window)
 	int buttonClicked = 0;
 	sf::Vector2f mousePosition;
 
+	sf::Packet pack;
+
 	while (window->pollEvent(event))
 	{
 		switch (event.type)
@@ -136,7 +140,8 @@ void Maps::InputControl(sf::RenderWindow * window)
 				break;
 			case 1:
 				std::cout << "Se ha Clickado el Mapa 1" << std::endl;
-				myTypeScene = TypeScene::GOTO_PLAY;
+				//myTypeScene = TypeScene::GOTO_PLAY;
+				pack << PROTOCOLO::WANTPLAY; 
 				window->close();
 				break;
 			case 2:
@@ -170,4 +175,32 @@ void Maps::InputControl(sf::RenderWindow * window)
 			break;
 		}
 	}
+}
+
+void Maps::sendPacket(sf::Packet & pack, sf::IpAddress _IP, unsigned short _port)
+{
+	startTime = clock();
+
+	while (!finishSending)
+	{
+		endTime = clock();
+		clockTicksTaken = endTime - startTime;
+		timeInSeconds = clockTicksTaken / (double)CLOCKS_PER_SEC;
+
+		if (timeInSeconds >= 0.5)
+		{
+			startTime = clock();
+			sf::Socket::Status status = socket->send(pack, _IP, _port);
+
+			if (status != sf::Socket::Done)
+			{
+				std::cout << "No se ha podido enviar el mensaje" << std::endl;
+			}
+			else
+			{
+				std::cout << "Se ha enviado el mensaje" << std::endl;
+			}
+		}
+	}
+
 }
