@@ -31,21 +31,8 @@ sf::Packet& operator >>(sf::Packet& packet, PROTOCOLO& orders)
 	int option = static_cast<int>(orders);
 	return packet >> option;
 }
-////////////////////////////////////////funcio para encontrar la id del usuario que envia el mensaje
-int getId(sf::IpAddress _adres, unsigned short _port)
-{
-	int ID;
 
 
-	for (int i = 0; i < playersConnecteds.size(); i++)
-	{
-		if (playersConnecteds[i].IP_Adress == _adres && playersConnecteds[i].port == _port)
-		{
-			ID = i;
-		}
-	}
-	return ID;
-}
 
 
 TypeScene sceneState;
@@ -63,6 +50,21 @@ PlayerProxy proxy;
 //PLAYER PROXIES
 std::vector<PlayerProxy> playersConnecteds;
 
+////////////////////////////////////////funcio para encontrar la id del usuario que envia el mensaje
+int getId(sf::IpAddress _adres, unsigned short _port)
+{
+	int ID;
+
+
+	for (int i = 0; i < playersConnecteds.size(); i++)
+	{
+		if (playersConnecteds[i].IP_Adress == _adres && playersConnecteds[i].port == _port)
+		{
+			ID = i;
+		}
+	}
+	return ID;
+}
 //MENSAJES CRITICOS
 //std::list<std::stack<Mensaje>> paquetes_criticos;
 
@@ -75,6 +77,13 @@ bool YouCanSignUp;
 int auxId;
 int auxIdPacket;
 
+//TIMER
+clock_t startTime;
+clock_t endTime;
+clock_t clockTicksTaken;
+double timeInSeconds;
+
+bool helloMessage = false;
 ////////puntero a la escena actual
 Scene* currentScene;
 
@@ -93,6 +102,10 @@ std::vector<gameProxy> gamesProxy;
 int games = 0;
 gameProxy auxGame;
 
+/////////////////////MUTEX
+std::mutex mutex;
+
+
 //THREAD RECEIVE SERVER
 void ServerReceive()
 {
@@ -100,7 +113,6 @@ void ServerReceive()
 	//// ------------------------ MENSAJE RECIBIDO ----------------- ////
 	PlayerProxy auxPlayerProxy;
 	PROTOCOLO orders;
-	sf::Packet pack;
 	sf::IpAddress adress;
 	unsigned short port;
 
@@ -109,12 +121,14 @@ void ServerReceive()
 	sql::SQLString USERNAMEBD = "puajklejos";
 	sql::SQLString PASSWORDBD = "Puajklejos95*";
 	sql::SQLString DATABASEBD = "practicaredes";
+	//BD BaseDatos(HOSTBD, USERNAMEBD, PASSWORDBD, DATABASEBD);
 	BD BaseDatos(HOSTBD, USERNAMEBD, PASSWORDBD, DATABASEBD);
 	// VARIABLES BASE DE DATOS
 	sql::SQLString SQLusername;
 	sql::SQLString SQLpassword;
 	std::string skin;
 	int SQLSkin;
+
 
 	std::cout << "ENTRO EN EL THREAD" << std::endl;
 
@@ -133,7 +147,8 @@ void ServerReceive()
 			std::cout << "Adress: " << adress << std::endl;
 			std::cout << "Port: " << port << std::endl;
 			//PROTOCOLO A DAR
-			int auxOrder;
+			int auxOrder;			
+
 			pack >> auxOrder;
 			orders = static_cast<PROTOCOLO>(auxOrder);
 
@@ -157,6 +172,7 @@ void ServerReceive()
 						currentId = i;
 					}
 				}
+
 				orders = PROTOCOLO::WELCOME;
 
 
@@ -169,13 +185,23 @@ void ServerReceive()
 					auxPlayerProxy.port = port;
 					auxPlayerProxy.id = numPlayers;
 					playersConnecteds.push_back(auxPlayerProxy);
-					pack.clear();
 
-					pack << orders << auxPlayerProxy.id;
-					socket.send(pack, playersConnecteds[numPlayers - 1].IP_Adress, playersConnecteds[numPlayers - 1].port);
+					pack.clear();
+					pack << orders;
+					pack << auxPlayerProxy.id;
+
+					if (socket.send(pack, playersConnecteds[numPlayers - 1].IP_Adress, playersConnecteds[numPlayers - 1].port) == sf::Socket::Done)
+					{
+							
+						std::cout << "Se ha enviado bien el WELCOME a la puerto: " << playersConnecteds[numPlayers - 1].port << std::endl;
+					}
+					std::cout << " Se ha recibido un nuevo cliente." << std::endl;
 				}
 				else
 				{
+					std::cout << "Se ha enviado bien el WELCOME a la puerto: " << playersConnecteds[currentId].port << std::endl;
+					std::cout << "El Cliente ya existe." << std::endl;
+					pack.clear();
 					pack << orders << playersConnecteds[currentId].id;
 					socket.send(pack, playersConnecteds[currentId].IP_Adress, playersConnecteds[currentId].port);
 				}
@@ -329,36 +355,44 @@ void serverMain()
 //THREAD RECEIVE CLIENT
 void ClientReceive()
 {
+	sf::IpAddress auxIP;
+	unsigned short auxport;
+	sf::Packet packRecieve;
 	while (true)
 	{
+
 		//COMPROBACION
-		sf::Socket::Status status;
-		status = socket.receive(pack, proxy.IP_Adress, proxy.port);
+		packRecieve.clear();
+
+		//mutex.lock();
+		status = socket.receive(packRecieve, auxIP, auxport);
+		//mutex.unlock();
 		if (status != sf::Socket::Done)
 		{
-			std::cout << "No se ha podido recibir el mensaje" << std::endl;
+			//std::cout << "No se ha podido recibir el mensaje" << std::endl;
 		}
 		else
 		{
 			std::cout << "Se ha recibido el mensaje" << std::endl;
 			//RECOGEMOS VARIABLES
 			int auxOrder;
-			pack >> auxOrder;
-			pack >> proxy.id;
+			packRecieve >> auxOrder;
+			packRecieve >> proxy.id;
 
 			orders = static_cast<PROTOCOLO>(auxOrder);
 
 			switch (orders)
 			{
 			case PROTOCOLO::WELCOME:
+				helloMessage = true;
 				std::cout << "El servidor te da la bienvenida con el siguiente id: " << proxy.id << std::endl;
 				break;
 			case PROTOCOLO::LOGINACCEPTED:
-				pack >> YouCanLogin;
+				packRecieve >> YouCanLogin;
 				std::cout << "Me puedo conectar: " << YouCanLogin << std::endl;
 				if (YouCanLogin)
 				{					
-					pack >> proxy.skin;
+					packRecieve >> proxy.skin;
 					currentScene->finishSending = true;
 					sceneState = TypeScene::GOTO_MENU;
 				}
@@ -370,7 +404,7 @@ void ClientReceive()
 				}
 				break;
 			case PROTOCOLO::REGISTERACCEPTED:
-				pack >> YouCanSignUp;
+				packRecieve >> YouCanSignUp;
 				std::cout << "Me puedo registrar: " << YouCanSignUp << std::endl;
 				if (YouCanSignUp)
 				{			
@@ -397,11 +431,17 @@ void ClientReceive()
 void clienteMain()
 {
 	////  ------------- MENSAJE --------------- ////
-	sf::Packet pack;
+	//sf::Packet pack;
+
+	socket.setBlocking(true);
 
 	////////Nos guardamos la IP y el puerto del Server
 	proxy.IP_Adress = IP_CLASE;
 	proxy.port = PORT;
+
+	//THREAD RECEIVE
+	std::thread threadClient(&ClientReceive);
+	threadClient.detach();
 
 	////////////////////////////////para protocolo
 	pack << PROTOCOLO::HELLO;
@@ -409,24 +449,35 @@ void clienteMain()
 	///////////////////////////////////////////////////conectamos con el server
 	sf::Socket::Status statusConfirmation = sf::Socket::NotReady;
 
+	startTime = clock();
 	//// ESTO SE TIENE QUE HACER CADA X TIEMPO
-	while (statusConfirmation != sf::Socket::Done)
+	while (!helloMessage)
 	{
-		statusConfirmation = socket.send(pack, proxy.IP_Adress, proxy.port);
-		if (status != sf::Socket::Done)
+		endTime = clock();
+		clockTicksTaken = endTime - startTime;
+		timeInSeconds = clockTicksTaken / (double)CLOCKS_PER_SEC;
+
+		if (timeInSeconds >= 1)
 		{
-			std::cout << "No se ha podido enviar el mensaje" << std::endl;
-		}
-		else
-		{
-			std::cout << "Se ha enviado el mensaje" << std::endl;
+			startTime = clock();
+
+			//mutex.lock();
+			statusConfirmation = socket.send(pack, proxy.IP_Adress, proxy.port);
+			std::cout << "ENVIO\n";
+			//mutex.unlock();
+
+			if (statusConfirmation != sf::Socket::Done)
+			{
+				std::cout << "No se ha podido enviar el mensaje" << std::endl;
+			}
+			else
+			{
+				std::cout << "Se ha enviado el mensaje" << std::endl;
+			}
 		}
 
 	}
 	
-	//THREAD RECEIVE
-	std::thread threadClient(&ClientReceive);
-	threadClient.detach();
 
 	///////condición del bucle 
 	bool finish = false;
