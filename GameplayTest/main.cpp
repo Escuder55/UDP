@@ -122,37 +122,41 @@ gameProxy auxGame;
 /////////////////////MUTEX
 std::mutex mutex;
 
+/////////////////////////////////////////////////////////////////////////////------------------------VARIABLES SERVER
+int numPlayers = 0;
+//// ------------------------ MENSAJE RECIBIDO ----------------- ////
+PlayerProxy auxPlayerProxy;
+sf::IpAddress adress;
+unsigned short port;
+
+//// ------------- BASE DE DATOS ------------------ //
+BD* BaseDatos;
+sql::SQLString HOSTBD = "tcp://www.db4free.net:3306";
+sql::SQLString USERNAMEBD = "puajklejos";
+sql::SQLString PASSWORDBD = "Puajklejos95*";
+sql::SQLString DATABASEBD = "practicaredes";
+
+// VARIABLES BASE DE DATOS
+sql::SQLString SQLusername;
+sql::SQLString SQLpassword;
+std::string skin;
+int SQLSkin;
+//// ------------------------- SET MAPS --------------------- ////
+MapaGame map1;
+MapaGame map2;
+MapaGame map3;
 
 //THREAD RECEIVE SERVER
 void ServerReceive()
 {
-	int numPlayers = 0;
-	//// ------------------------ MENSAJE RECIBIDO ----------------- ////
-	PlayerProxy auxPlayerProxy;
-	PROTOCOLO orders;
-	sf::IpAddress adress;
-	unsigned short port;
-
-	//// ------------- BASE DE DATOS ------------------ //
-	sql::SQLString HOSTBD = "tcp://www.db4free.net:3306";
-	sql::SQLString USERNAMEBD = "puajklejos";
-	sql::SQLString PASSWORDBD = "Puajklejos95*";
-	sql::SQLString DATABASEBD = "practicaredes";
+	
 	//BD BaseDatos(HOSTBD, USERNAMEBD, PASSWORDBD, DATABASEBD);
-	BD BaseDatos(HOSTBD, USERNAMEBD, PASSWORDBD, DATABASEBD);
-	// VARIABLES BASE DE DATOS
-	sql::SQLString SQLusername;
-	sql::SQLString SQLpassword;
-	std::string skin;
-	int SQLSkin;
-	//// ------------------------- SET MAPS --------------------- ////
-	MapaGame map1;
-	MapaGame map2;
-	MapaGame map3;
+	BaseDatos = new BD(HOSTBD, USERNAMEBD, PASSWORDBD, DATABASEBD);
+	BaseDatos->InitBaseDatos();
 
-	map1 = BaseDatos.getMap1();
-	map2 = BaseDatos.getMap2();
-	map3 = BaseDatos.getMap3();
+	map1 = BaseDatos->getMap1();
+	map2 = BaseDatos->getMap2();
+	map3 = BaseDatos->getMap3();
 
 	//// --------------------- BINARY TREES -------------------- ////
 	BinaryTree BST;
@@ -229,6 +233,8 @@ void ServerReceive()
 			{
 			case PROTOCOLO::HELLO:
 			{
+
+				
 				//////////////////////////////////////////////////comprobamos si este usuario ya ha enviado más hello
 				for (int i = 0; i < playersConnecteds.size(); i++)
 				{
@@ -241,7 +247,6 @@ void ServerReceive()
 
 				orders = PROTOCOLO::WELCOME;
 
-
 				/////////////////si el usuario es nuevo
 				if (newPlayer)
 				{
@@ -251,6 +256,8 @@ void ServerReceive()
 					auxPlayerProxy.port = port;
 					auxPlayerProxy.id = numPlayers;
 					playersConnecteds.push_back(auxPlayerProxy);
+
+					playersConnecteds[getId(adress, port)].Critic_Message.insert({ PROTOCOLO::HELLO, Mensaje(playersConnecteds[getId(adress, port)].counterPacket, pack) });
 
 					pack.clear();
 					pack << orders;
@@ -265,6 +272,8 @@ void ServerReceive()
 				}
 				else
 				{
+					playersConnecteds[getId(adress, port)].Critic_Message.insert({ PROTOCOLO::HELLO, Mensaje(playersConnecteds[getId(adress, port)].counterPacket, pack) });
+
 					std::cout << "Se ha enviado bien el WELCOME a la puerto: " << playersConnecteds[currentId].port << std::endl;
 					std::cout << "El Cliente ya existe." << std::endl;
 					pack.clear();
@@ -277,6 +286,7 @@ void ServerReceive()
 			}
 			case PROTOCOLO::REGISTER:
 			{
+				//playersConnecteds[getId(adress, port)].Critic_Message.insert({ PROTOCOLO::REGISTER, Mensaje(playersConnecteds[getId(adress, port)].counterPacket, pack) });
 				pack >> auxId;
 				pack >> auxIdPacket;
 				pack >> username;
@@ -286,7 +296,8 @@ void ServerReceive()
 
 				YouCanSignUp = false;
 
-				if (password == repeatPassword)
+				if 
+					(password == repeatPassword)
 				{
 					SQLusername = username.c_str();
 					SQLpassword = password.c_str();
@@ -298,12 +309,12 @@ void ServerReceive()
 					std::cout << "Register with Skin:	" << skin << std::endl;
 
 					//CONSULTA 
-					YouCanSignUp = !BaseDatos.CheckUser(SQLusername);
+					YouCanSignUp = !BaseDatos->CheckUser(SQLusername);
 					std::cout << "El usuario puede registrarse? " << YouCanSignUp << std::endl;
 
 					if (YouCanSignUp)
 					{
-						BaseDatos.InsertNewUser(SQLusername, SQLpassword, SQLSkin);
+						BaseDatos->InsertNewUser(SQLusername, SQLpassword, SQLSkin);
 
 						for (int i = 0; i < playersConnecteds.size(); i++)
 						{
@@ -329,47 +340,9 @@ void ServerReceive()
 				break;
 			}
 			case PROTOCOLO::LOGIN:
-			{
-				
-				
+			{				
 				playersConnecteds[getId(adress, port)].Critic_Message.insert({PROTOCOLO::LOGIN, Mensaje(playersConnecteds[getId(adress, port)].counterPacket, pack)});
-				pack >> auxId;
-				pack >> auxIdPacket;
-				pack >> username;
-				pack >> password;
-
-				SQLusername = username.c_str();
-				SQLpassword = password.c_str();
-
-				std::cout << "He recibido un intento de Login." << std::endl;
-				//COMPROVACION
-				for (int i = 0; i < playersConnecteds.size(); i++)
-				{
-					if (playersConnecteds[i].id == auxId)
-					{
-						std::cout << "El usuario con id: " << auxId
-							<< "Ha enviado el paquete con id: " << auxIdPacket
-							<< "Log in User:		" << username << std::endl;
-						std::cout << "Log in Password:	" << password << std::endl;
-
-						//CONSULTA 
-						YouCanLogin = BaseDatos.LoginUser(SQLusername, SQLpassword);
-						std::cout << "El usuario puede entrar? " << YouCanLogin << std::endl;
-
-						playersConnecteds[i].skin = BaseDatos.TakeSkin(SQLusername, SQLpassword);
-
-						//SEND TO CLIENT
-						pack.clear();
-						pack << PROTOCOLO::LOGINACCEPTED << auxPlayerProxy.id << YouCanLogin << playersConnecteds[i].skin;
-						socket.send(pack, playersConnecteds[i].IP_Adress, playersConnecteds[i].port);
-
-					}
-					else
-					{
-						std::cout << "he recibido el intento de login pero no coincie con ningun usuario " << std::endl;
-					}
-
-				}
+				
 				break;
 			}
 			case PROTOCOLO::WANTPLAY:
@@ -398,15 +371,38 @@ void ServerReceive()
 //THREAD PAQUETES CRÍTICOS
 void SendCriticPack()
 {
+
+	//////////// ------------ VARIABLES A UTILIZAR ------------ ////////////
 	int iterador = 0 ;
 	int aux = 0;
+	bool newPlayer = true;
+	int currentId;
+
+	std::string username;
+	std::string password;
+	std::string repeatPassword;
+
+	std::cout << "Adress: " << adress << std::endl;
+	std::cout << "Port: " << port << std::endl;
+
+	sf::Packet auxPacket;
+
+	//PROTOCOLO A DAR
+	int auxOrder;
 	PROTOCOLO auxProtocolo= PROTOCOLO::NONEPROTOCOLO;
+	
 	while (true)
 	{
 		if (!playersConnecteds.empty())
 		{
 			if (!playersConnecteds[iterador].Critic_Message.empty())
 			{
+				if (aux < playersConnecteds[iterador].Critic_Message.count(PROTOCOLO::HELLO))
+				{
+					aux = playersConnecteds[iterador].Critic_Message.count(PROTOCOLO::HELLO);
+					auxProtocolo = PROTOCOLO::HELLO;
+					std::cout << "0" << std::endl;
+				}
 				if (aux < playersConnecteds[iterador].Critic_Message.count(PROTOCOLO::LOGIN))
 				{
 					aux = playersConnecteds[iterador].Critic_Message.count(PROTOCOLO::LOGIN);
@@ -440,21 +436,69 @@ void SendCriticPack()
 
 				switch (auxProtocolo)
 				{
+				case HELLO:
+					std::cout << "CONTESTANDO AL HELLO\n";
+					break;
 				case REGISTER:
+					std::cout << "CONTESTANDO AL SIGN UP\n";
 					break;
 				case LOGIN:
-					std::cout << "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\n";
+				{
+					std::cout << "CONTESTANDO AL LOG IN\n";
+
+					auxPacket = playersConnecteds[iterador].Critic_Message.find(auxProtocolo)->second.pack;
+
+					auxPacket >> auxId;
+					auxPacket >> auxIdPacket;
+					auxPacket >> username;
+					auxPacket >> password;
+
+					SQLusername = username.c_str();
+					SQLpassword = password.c_str();
+
+					std::cout << "He recibido un intento de Login." << std::endl;
+					//COMPROVACION
+					for (int i = 0; i < playersConnecteds.size(); i++)
+					{
+						if (playersConnecteds[i].id == auxId)
+						{
+							std::cout << "El usuario con id: " << auxId
+								<< "Ha enviado el paquete con id: " << auxIdPacket
+								<< "Log in User:		" << username << std::endl;
+							std::cout << "Log in Password:	" << password << std::endl;
+
+							//CONSULTA 
+							YouCanLogin = BaseDatos->LoginUser(SQLusername, SQLpassword);
+							std::cout << "El usuario puede entrar? " << YouCanLogin << std::endl;
+
+							playersConnecteds[i].skin = BaseDatos->TakeSkin(SQLusername, SQLpassword);
+
+							//SEND TO CLIENT
+							pack.clear();
+							pack << PROTOCOLO::LOGINACCEPTED << auxPlayerProxy.id << YouCanLogin << playersConnecteds[i].skin;
+							socket.send(pack, playersConnecteds[i].IP_Adress, playersConnecteds[i].port);
+
+						}
+						else
+						{
+							std::cout << "he recibido el intento de login pero no coincie con ningun usuario " << std::endl;
+						}
+					}					
+						playersConnecteds[iterador].Critic_Message.erase(playersConnecteds[iterador].Critic_Message.find(auxProtocolo));
 					break;
+				}
 				case WANTPLAY:
+					std::cout << "CONTESTANDO A WANT PLAY\n";
 					break;
 				case STARTGAME:
+					std::cout << "CONTESTANDO A WANTPLAY\n";
 					break;
 				case ROOMCHANGE:
 					break;
 				case DISCONECTED:
 					break;
 				default:
-					std::cout << "BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB\n";
+					std::cout << "BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB\n";
 					break;
 				}
 				iterador++;

@@ -26,6 +26,7 @@ public:
 
 	//METODOS
 	BD(sql::SQLString PHost, sql::SQLString PUsername, sql::SQLString PPassword, sql::SQLString PDataBase);
+	void InitBaseDatos();
 	bool CheckUser(sql::SQLString UserToSearch);
 	void InsertNewUser(sql::SQLString user, sql::SQLString password, int Skin);
 	bool LoginUser(sql::SQLString user, sql::SQLString password);

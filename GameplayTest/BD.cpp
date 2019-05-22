@@ -6,6 +6,10 @@ BD::BD(sql::SQLString PHost, sql::SQLString PUsername, sql::SQLString PPassword,
 	Username = PUsername;
 	Password = PPassword;
 	DataBase = PDataBase;
+}
+
+void BD::InitBaseDatos()
+{	
 
 	try
 	{
