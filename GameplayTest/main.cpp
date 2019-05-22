@@ -19,6 +19,7 @@
 #include "Mensaje.h"
 #include "PlayerProxy.h"
 #include "BD.h"
+#include "BinaryTree.h"
 #include <map>
 
 //PACKET SOBRECARGADO
@@ -80,6 +81,19 @@ bool YouCanSignUp;
 int auxId;
 int auxIdPacket;
 
+//MAPA Y SALAS
+struct Salas
+{
+	int id_sala;
+	int puertas[4];
+};
+
+struct Map
+{
+	int id_map;
+	Salas salas[4];
+};
+
 //TIMER
 clock_t startTime;
 clock_t endTime;
@@ -131,6 +145,55 @@ void ServerReceive()
 	sql::SQLString SQLpassword;
 	std::string skin;
 	int SQLSkin;
+	//// ------------------------- SET MAPS --------------------- ////
+	MapaGame map1;
+	MapaGame map2;
+	MapaGame map3;
+
+	map1 = BaseDatos.getMap1();
+	map2 = BaseDatos.getMap2();
+	map3 = BaseDatos.getMap3();
+
+	//// --------------------- BINARY TREES -------------------- ////
+	BinaryTree BST;
+
+	//PRUEBAS BASE DATOS
+	/*int a = 1;
+	std::cout << "MAP1 " << std::endl;
+	for (int i = 0; i < 4; i++)
+	{
+		std::cout << "Sala" << i + a << ": " << std::endl;
+		for (int j = 0; j < 4; j++)
+		{
+			std::cout << map1.salas[i].puertas[j] << " ";
+		}
+		std::cout << std::endl;
+	}
+	std::cout << std::endl;
+
+	std::cout << "MAP2 " << std::endl;
+	for (int i = 0; i < 4; i++)
+	{
+		std::cout << "Sala" << i + a << ": " << std::endl;
+		for (int j = 0; j < 4; j++)
+		{
+			std::cout << map2.salas[i].puertas[j] << " ";
+		}
+		std::cout << std::endl;
+	}
+	std::cout << std::endl;
+
+	std::cout << "MAP3 " << std::endl;
+	for (int i = 0; i < 4; i++)
+	{
+		std::cout << "Sala" << i + a << ": " << std::endl;
+		for (int j = 0; j < 4; j++)
+		{
+			std::cout << map3.salas[i].puertas[j] << " ";
+		}
+		std::cout << std::endl;
+	}
+	std::cout << std::endl;*/
 
 
 	std::cout << "ENTRO EN EL THREAD" << std::endl;

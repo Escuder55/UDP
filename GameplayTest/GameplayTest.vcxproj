@@ -20,6 +20,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BD.cpp" />
+    <ClCompile Include="BinaryTree.cpp" />
     <ClCompile Include="Bullet.cpp" />
     <ClCompile Include="Character.cpp" />
     <ClCompile Include="FirstChoice.cpp" />
@@ -35,6 +36,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BD.h" />
+    <ClInclude Include="BinaryTree.h" />
     <ClInclude Include="Bullet.h" />
     <ClInclude Include="Character.h" />
     <ClInclude Include="Constants.h" />
@@ -45,8 +47,12 @@
     <ClInclude Include="Menu.h" />
     <ClInclude Include="Mensaje.h" />
     <ClInclude Include="PlayerProxy.h" />
+    <ClInclude Include="resource.h" />
     <ClInclude Include="Scene.h" />
     <ClInclude Include="SignUp.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="GameplayTest.rc" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>

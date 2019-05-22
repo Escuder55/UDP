@@ -4,6 +4,8 @@
 #include <jdbc/cppconn/resultset.h>
 #include <jdbc/cppconn/statement.h>
 #include <jdbc/cppconn/prepared_statement.h>
+#include "Constants.h"
+
 
 class BD
 {
@@ -28,6 +30,13 @@ public:
 	void InsertNewUser(sql::SQLString user, sql::SQLString password, int Skin);
 	bool LoginUser(sql::SQLString user, sql::SQLString password);
 	int TakeSkin(sql::SQLString user, sql::SQLString password);
+
+	//MAPA
+	MapaGame getMap1();
+	MapaGame getMap2();
+	MapaGame getMap3();
+
+	//DESTRUCTOR
 	~BD();
 };
 

@@ -94,3 +94,15 @@ enum PROTOCOLO
 	PONG,
 	NONEPROTOCOLO
 };
+
+//MAPA
+struct Sala
+{
+	int id_sala;
+	int puertas[4];
+};
+struct MapaGame
+{
+	int id_map;
+	Sala salas[4];
+};
