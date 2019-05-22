@@ -2,6 +2,7 @@
 #include "Mensaje.h"
 #include <stack>
 #include <SFML/Network.hpp>
+#include <map>
 
 class PlayerProxy
 {
@@ -14,7 +15,8 @@ public:
 	std::string userName;
 	int skin;
 	int counterPacket;
-	std::stack<Mensaje> critic_Msg;
+	std::multimap<PROTOCOLO, Mensaje> Critic_Message;
+	std::multimap<PROTOCOLO, Mensaje> Regular_Message;
 	float posX;
 	float posY;
 	

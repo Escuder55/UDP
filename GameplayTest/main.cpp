@@ -19,6 +19,7 @@
 #include "Mensaje.h"
 #include "PlayerProxy.h"
 #include "BD.h"
+#include <map>
 
 //PACKET SOBRECARGADO
 sf::Packet& operator <<(sf::Packet& packet, const PROTOCOLO& orders)
@@ -53,7 +54,7 @@ std::vector<PlayerProxy> playersConnecteds;
 ////////////////////////////////////////funcio para encontrar la id del usuario que envia el mensaje
 int getId(sf::IpAddress _adres, unsigned short _port)
 {
-	int ID;
+	int ID = 0;
 
 
 	for (int i = 0; i < playersConnecteds.size(); i++)
@@ -67,8 +68,10 @@ int getId(sf::IpAddress _adres, unsigned short _port)
 }
 //MENSAJES CRITICOS
 //std::list<std::stack<Mensaje>> paquetes_criticos;
+std::multimap<int, Mensaje> paquetes_criticos;
 
 //MENSAJES NORMALES
+
 //std::list<std::stack<Mensaje>> paquetes_normales;
 
 //LOGIN/REGISTER
@@ -264,6 +267,9 @@ void ServerReceive()
 			}
 			case PROTOCOLO::LOGIN:
 			{
+				
+				
+				playersConnecteds[getId(adress, port)].Critic_Message.insert({PROTOCOLO::LOGIN, Mensaje(playersConnecteds[getId(adress, port)].counterPacket, pack)});
 				pack >> auxId;
 				pack >> auxIdPacket;
 				pack >> username;
@@ -326,6 +332,88 @@ void ServerReceive()
 		}
 	}
 }
+//THREAD PAQUETES CRÍTICOS
+void SendCriticPack()
+{
+	int iterador = 0 ;
+	int aux = 0;
+	PROTOCOLO auxProtocolo= PROTOCOLO::NONEPROTOCOLO;
+	while (true)
+	{
+		if (!playersConnecteds.empty())
+		{
+			if (!playersConnecteds[iterador].Critic_Message.empty())
+			{
+				if (aux < playersConnecteds[iterador].Critic_Message.count(PROTOCOLO::LOGIN))
+				{
+					aux = playersConnecteds[iterador].Critic_Message.count(PROTOCOLO::LOGIN);
+					auxProtocolo = PROTOCOLO::LOGIN;
+					std::cout << "1" << std::endl;
+				}
+				if (aux < playersConnecteds[iterador].Critic_Message.count(PROTOCOLO::REGISTER))
+				{
+					aux = playersConnecteds[iterador].Critic_Message.count(PROTOCOLO::REGISTER);
+					auxProtocolo = PROTOCOLO::REGISTER;
+					std::cout << "2" << std::endl;
+				}
+				if (aux < playersConnecteds[iterador].Critic_Message.count(PROTOCOLO::ROOMCHANGE))
+				{
+					aux = playersConnecteds[iterador].Critic_Message.count(PROTOCOLO::ROOMCHANGE);
+					auxProtocolo = PROTOCOLO::ROOMCHANGE;
+					std::cout << "3" << std::endl;
+				}
+				if (aux < playersConnecteds[iterador].Critic_Message.count(PROTOCOLO::DISCONECTED))
+				{
+					aux = playersConnecteds[iterador].Critic_Message.count(PROTOCOLO::DISCONECTED);
+					auxProtocolo = PROTOCOLO::DISCONECTED;
+					std::cout << "4" << std::endl;
+				}
+				if (aux < playersConnecteds[iterador].Critic_Message.count(PROTOCOLO::WANTPLAY))
+				{
+					aux = playersConnecteds[iterador].Critic_Message.count(PROTOCOLO::WANTPLAY);
+					auxProtocolo = PROTOCOLO::WANTPLAY;
+					std::cout << "5" << std::endl;
+				}
+
+				switch (auxProtocolo)
+				{
+				case REGISTER:
+					break;
+				case LOGIN:
+					std::cout << "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\n";
+					break;
+				case WANTPLAY:
+					break;
+				case STARTGAME:
+					break;
+				case ROOMCHANGE:
+					break;
+				case DISCONECTED:
+					break;
+				default:
+					std::cout << "BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB\n";
+					break;
+				}
+				iterador++;
+				if (iterador > playersConnecteds.size()-1)
+				{
+					iterador = 0;
+				}
+				aux = 0;
+			}
+			else
+			{
+				iterador++;
+				if (iterador > playersConnecteds.size()-1)
+				{
+					iterador = 0;
+				}
+			}
+		}
+	}
+
+}
+
 
 //////////////////////////////////////////
 ////////////////////////////////////////// SERVER
@@ -346,6 +434,8 @@ void serverMain()
 	std::thread threadServer(&ServerReceive);
 	threadServer.detach();
 
+	std::thread threadCritic(&SendCriticPack);
+	threadCritic.detach();
 	while (1)
 	{
 
@@ -586,6 +676,13 @@ void clienteMain()
 
 void main()
 {
+	sf::Packet prueba;
+
+	prueba << "Funciona\n";
+	int aux = 1;
+
+	
+
 	std::string answer;
 	bool rightAnswer = false;
 

@@ -8,10 +8,10 @@ public:
 
 	//ATTRIBUTES
 	int id;
-	PROTOCOLO protocol;
 	sf::Packet pack;
 
 	Mensaje();
+	Mensaje(int _id, sf::Packet &_pack);
 	~Mensaje();
 };
 

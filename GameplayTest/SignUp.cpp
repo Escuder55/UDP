@@ -527,7 +527,7 @@ void SignUp::InputControl(sf::RenderWindow * window)
 
 }
 
-void SignUp::sendPacket(sf::Packet & pack, sf::IpAddress _IP, unsigned short _port)
+void SignUp::sendPacket(sf::Packet &pack, sf::IpAddress _IP, unsigned short _port)
 {
 	startTime = clock();
 	while (!finishSending)
