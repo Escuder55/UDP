@@ -400,6 +400,24 @@ int BD::getMonstersKilledPlayer(sql::SQLString PUsername, sql::SQLString PPasswo
 	return enemiesKilled;
 }
 
+int BD::getIdCuenta(sql::SQLString PUsername, sql::SQLString PPassword)
+{
+	prep_stmt = conn->prepareStatement("SELECT id_cuenta from cuenta WHERE nick = ? && password = ?");
+	prep_stmt->setString(1, PUsername);
+	prep_stmt->setString(2, PPassword);
+	res = prep_stmt->executeQuery();
+
+	while (res->next())
+	{
+		return res->getInt("id_cuenta");
+	}
+
+
+	delete res;
+	delete prep_stmt;
+
+}
+
 BD::~BD()
 {
 	conn->close();

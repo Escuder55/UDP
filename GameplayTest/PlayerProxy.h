@@ -12,6 +12,7 @@ public:
 	sf::IpAddress IP_Adress;
 	unsigned short port;
 	int id;
+	int id_cuenta;
 	std::string userName;
 	std::string password;
 	int skin;

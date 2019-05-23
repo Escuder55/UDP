@@ -32,14 +32,14 @@ public:
 	void InsertNewUser(sql::SQLString user, sql::SQLString password, int Skin);
 	bool LoginUser(sql::SQLString user, sql::SQLString password);
 	int TakeSkin(sql::SQLString user, sql::SQLString password);
+	int getMonstersKilledPlayer(sql::SQLString PUsername, sql::SQLString PPassword);
+	int getIdCuenta(sql::SQLString PUsername, sql::SQLString PPassword);
+
 
 	//MAPA
 	MapaGame getMap1();
 	MapaGame getMap2();
 	MapaGame getMap3();
-
-	//GET MONSTRUOS KILLED
-	int getMonstersKilledPlayer(sql::SQLString PUsername, sql::SQLString PPassword);
 
 	//DESTRUCTOR
 	~BD();
