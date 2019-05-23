@@ -34,9 +34,6 @@ sf::Packet& operator >>(sf::Packet& packet, PROTOCOLO& orders)
 	return packet >> option;
 }
 
-
-
-
 TypeScene sceneState;
 /////////////////////////////////////////// VARIABLES COMPARTIDAS
 PROTOCOLO orders;
@@ -123,7 +120,9 @@ struct waitingPlayer
 };
 
 std::vector<gameProxy> gamesProxy;
-std::vector<waitingPlayer> playersWaiting;
+std::vector<waitingPlayer> playersWaitingMap1;
+std::vector<waitingPlayer> playersWaitingMap2;
+std::vector<waitingPlayer> playersWaitingMap3;
 
 int games = 0;
 gameProxy auxGame;
@@ -160,16 +159,36 @@ MapaGame map3;
 ///////////--------------- COMPROBAR SI YA ESTA ESPERANDO PARTIDA --------------- ////////////
 bool IsInTheList(int id) 
 {
-	if (!playersWaiting.empty())
+	if (!playersWaitingMap1.empty())
 	{
-		for (int i = 0; i < playersWaiting.size(); i++)
+		for (int i = 0; i < playersWaitingMap1.size(); i++)
 		{
-			if (playersWaiting[i].id == id)
+			if (playersWaitingMap1[i].id == id)
 			{
 				return  true;
 			}
 		}
 	}	
+	if (!playersWaitingMap2.empty())
+	{
+		for (int i = 0; i < playersWaitingMap2.size(); i++)
+		{
+			if (playersWaitingMap2[i].id == id)
+			{
+				return  true;
+			}
+		}
+	}
+	if (!playersWaitingMap3.empty())
+	{
+		for (int i = 0; i < playersWaitingMap3.size(); i++)
+		{
+			if (playersWaitingMap3[i].id == id)
+			{
+				return  true;
+			}
+		}
+	}
 	return false;
 }
 
@@ -277,7 +296,7 @@ void ServerReceive()
 				{
 					if (!IsInTheList(getId(adress, port)))
 					{
-						playersWaiting.push_back({ getId(adress, port) ,1,playersConnecteds[getId(adress, port)].NumEnemigos });
+						playersWaitingMap1.push_back({ getId(adress, port) ,1,playersConnecteds[getId(adress, port)].NumEnemigos });
 					}					
 					break;
 				}
@@ -285,7 +304,7 @@ void ServerReceive()
 				{
 					if (!IsInTheList(getId(adress, port)))
 					{
-						playersWaiting.push_back({ getId(adress, port) ,2,playersConnecteds[getId(adress, port)].NumEnemigos });
+						playersWaitingMap2.push_back({ getId(adress, port) ,2,playersConnecteds[getId(adress, port)].NumEnemigos });
 					}
 
 					break;
@@ -294,7 +313,7 @@ void ServerReceive()
 				{
 					if (!IsInTheList(getId(adress, port)))
 					{
-						playersWaiting.push_back({ getId(adress, port) ,3,playersConnecteds[getId(adress, port)].NumEnemigos });
+						playersWaitingMap3.push_back({ getId(adress, port) ,3,playersConnecteds[getId(adress, port)].NumEnemigos });
 					}
 
 					break;
@@ -321,6 +340,7 @@ void ServerReceive()
 			//std::cout << "No he recibido nada" << std::endl;
 		}
 	}
+	std::cout << "fuga" << std::endl;
 }
 //THREAD PAQUETES CRÍTICOS
 void SendCriticPack()
@@ -519,7 +539,7 @@ void SendCriticPack()
 								auxPacket.clear();
 								auxPacket << PROTOCOLO::LOGINACCEPTED << auxPlayerProxy.id << YouCanLogin << playersConnecteds[i].skin;
 								socket.send(auxPacket, playersConnecteds[i].IP_Adress, playersConnecteds[i].port);
-
+								
 							}
 							else
 							{
@@ -589,23 +609,22 @@ void SendCriticPack()
 			int playerForMap3 = 0;
 
 
-			/////////// -------------- HACER EL MATCHMAKING -------------- //////////////
-			for (int i = 0; i < playersWaiting.size(); i++)
+			/////////// -------------- HACER EL MATCHMAKING MAPA1-------------- //////////////
+			for (int i = 0; i < playersWaitingMap1.size(); i++)
 			{
-				if (playersWaiting[i].map == 1)
+				if (playersWaitingMap1[i].map == 1)
 				{
 					playerForMap1++;
 				}
-				else if (playersWaiting[i].map == 2)
+				else if (playersWaitingMap1[i].map == 2)
 				{
 					playerForMap2++;
 				}
-				else if (playersWaiting[i].map == 3)
+				else if (playersWaitingMap1[i].map == 3)
 				{
 					playerForMap3++;
 				}
 			}
-
 			if (playerForMap1 >= 4)
 			{
 
@@ -618,7 +637,15 @@ void SendCriticPack()
 			{
 
 			}
-
+			/////////// -------------- HACER EL MATCHMAKING MAPA2-------------- //////////////
+			//
+			//
+			//
+			/////////// -------------- HACER EL MATCHMAKING MAPA3-------------- //////////////
+			//
+			//
+			//
+			//////////////////////////////////////////////////////////////////////////////////
 		}
 
 	}

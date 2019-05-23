@@ -162,7 +162,7 @@ void LogIn::InputControl(sf::RenderWindow * window)
 					sf::Packet pack;
 					/////////////////////////////////////////////Cambiar esto
 					pack << PROTOCOLO::LOGIN << me.id << me.counterPacket << userAnswer << passwordAnswer;
-					sendPacket(pack, IP, PORT);
+					sendPacket(pack, IP_CLASE, PORT);
 					me.counterPacket++;
 
 					///// ------------- VAMOS A LA ESCENA MENU ------------- /////					
