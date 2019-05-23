@@ -110,14 +110,24 @@ Scene* currentScene;
 struct gameProxy
 {
 	int id;
-
+	int idMAp;
 	std::vector<PlayerProxy> players;
+	std::vector<Enemy> EnemiesGame;
+	bool  started = false;
+};
+struct waitingPlayer
+{
+	int id;
+	int map;
+	int numEnemies;
 };
 
 std::vector<gameProxy> gamesProxy;
+std::vector<waitingPlayer> playersWaiting;
 
 int games = 0;
 gameProxy auxGame;
+
 
 /////////////////////MUTEX
 std::mutex mutex;
@@ -145,6 +155,8 @@ int SQLSkin;
 MapaGame map1;
 MapaGame map2;
 MapaGame map3;
+
+
 
 //THREAD RECEIVE SERVER
 void ServerReceive()
@@ -198,7 +210,7 @@ void ServerReceive()
 		std::cout << std::endl;
 	}
 	std::cout << std::endl;*/
-
+	int auxSala;
 
 	std::cout << "ENTRO EN EL THREAD" << std::endl;
 
@@ -278,14 +290,33 @@ void ServerReceive()
 			}
 			case PROTOCOLO::WANTPLAY:
 			{
-				for (int i = 0; i < playersConnecteds.size(); )
+				playersConnecteds[getId(adress, port)].Critic_Message.insert({ PROTOCOLO::WANTPLAY, Mensaje(playersConnecteds[getId(adress, port)].counterPacket, pack) });
+				pack >> auxSala;
+				switch (auxSala)
 				{
-
+				case 1:
+				{
+					playersWaiting.push_back({ getId(adress, port) ,1,getId(adress, port) });
+					break;
+				}
+				case 2:
+				{
+					playersWaiting.push_back({ getId(adress, port) ,2, getId(adress, port) });
+					break;
+				}
+				case 3:
+				{
+					playersWaiting.push_back({ getId(adress, port) ,3, getId(adress, port) });
+					break;
+				}
+				default:
+					std::cout << "No se ha recicbido bien la sala que se quiere jugar." << std::endl;
+					break;
 				}
 				if (gamesProxy.size() == 0)
 				{					
-
-					//gamesProxy.pushback(auxGame);
+					games++;
+					//gamesProxy.push_back{games,});
 				}
 				break;
 			}
@@ -314,6 +345,9 @@ void SendCriticPack()
 	std::string username;
 	std::string password;
 	std::string repeatPassword;
+
+	//KILLED MONSTERS
+	int KilledMonsters;
 
 	//std::cout << "Adress: " << adress << std::endl;
 	//std::cout << "Port: " << port << std::endl;
@@ -404,6 +438,11 @@ void SendCriticPack()
 						SQLpassword = password.c_str();
 						SQLSkin = std::atoi(skin.c_str());
 
+						//COGEMOS MONSTRUOS MATADOS DEL USUARIO
+						KilledMonsters = BaseDatos->getMonstersKilledPlayer(SQLusername, SQLpassword);
+						std::cout << "Enemigos matados: " << KilledMonsters << std::endl;
+						playersConnecteds[iterador].NumEnemigos = KilledMonsters;
+
 						//COMPROVACION
 						std::cout << "Register with User:		" << username << std::endl;
 						std::cout << "Register with Password:	" << password << std::endl;
@@ -457,6 +496,11 @@ void SendCriticPack()
 					SQLusername = username.c_str();
 					SQLpassword = password.c_str();
 
+					//COGEMOS MONSTRUOS MATADOS DEL USUARIO
+					KilledMonsters = BaseDatos->getMonstersKilledPlayer(SQLusername, SQLpassword);
+					std::cout << "Enemigos matados: " << KilledMonsters << std::endl;
+					playersConnecteds[iterador].NumEnemigos = KilledMonsters;
+
 					std::cout << "He recibido un intento de Login." << std::endl;
 					//COMPROVACION
 					for (int i = 0; i < playersConnecteds.size(); i++)
@@ -490,6 +534,12 @@ void SendCriticPack()
 				}
 				case WANTPLAY:
 					std::cout << "CONTESTANDO A WANT PLAY\n";
+					auxPacket.clear();
+					auxPacket << PROTOCOLO::WANTPLAYACCEPTED;
+					socket.send(auxPacket, playersConnecteds[iterador].IP_Adress, playersConnecteds[iterador].port);
+
+					/////// ----------- BORRAMOS EL MENSAJE DE LA LISTA DE CRITICOS ------------- ///////
+					playersConnecteds[iterador].Critic_Message.erase(playersConnecteds[iterador].Critic_Message.find(auxProtocolo));
 					break;
 				case STARTGAME:
 					std::cout << "CONTESTANDO A WANTPLAY\n";

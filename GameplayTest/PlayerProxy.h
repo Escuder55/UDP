@@ -13,12 +13,14 @@ public:
 	unsigned short port;
 	int id;
 	std::string userName;
+	std::string password;
 	int skin;
 	int counterPacket;
 	std::multimap<PROTOCOLO, Mensaje> Critic_Message;
 	std::multimap<PROTOCOLO, Mensaje> Regular_Message;
 	float posX;
 	float posY;
+	int NumEnemigos;
 	
 	PlayerProxy();
 	~PlayerProxy();

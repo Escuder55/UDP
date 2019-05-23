@@ -5,6 +5,7 @@
 #include <jdbc/cppconn/statement.h>
 #include <jdbc/cppconn/prepared_statement.h>
 #include "Constants.h"
+#include <vector>
 
 
 class BD
@@ -36,6 +37,9 @@ public:
 	MapaGame getMap1();
 	MapaGame getMap2();
 	MapaGame getMap3();
+
+	//GET MONSTRUOS KILLED
+	int getMonstersKilledPlayer(sql::SQLString PUsername, sql::SQLString PPassword);
 
 	//DESTRUCTOR
 	~BD();

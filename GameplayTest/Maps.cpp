@@ -139,19 +139,21 @@ void Maps::InputControl(sf::RenderWindow * window)
 				std::cout << "Ningun Boton" << std::endl;
 				break;
 			case 1:
-				std::cout << "Se ha Clickado el Mapa 1" << std::endl;
-				//myTypeScene = TypeScene::GOTO_PLAY;
-				pack << PROTOCOLO::WANTPLAY; 
+				std::cout << "Se ha Clickado el Mapa 1" << std::endl;				
+				pack << PROTOCOLO::WANTPLAY << 1 ; 
+				sendPacket(pack, IP_CLASE, PORT);
 				window->close();
 				break;
 			case 2:
 				std::cout << "Se ha Clickado el Mapa 2" << std::endl;
-				myTypeScene = TypeScene::GOTO_PLAY;
+				pack << PROTOCOLO::WANTPLAY << 2;
+				sendPacket(pack, IP_CLASE, PORT);
 				window->close();
 				break;
 			case 3:
 				std::cout << "Se ha Clickado el Mapa 3" << std::endl;
-				myTypeScene = TypeScene::GOTO_PLAY;
+				pack << PROTOCOLO::WANTPLAY << 3;
+				sendPacket(pack, IP_CLASE, PORT);
 				window->close();
 				break;
 			case 4:

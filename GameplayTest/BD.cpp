@@ -352,6 +352,54 @@ MapaGame BD::getMap3()
 	return map1;
 }
 
+int BD::getMonstersKilledPlayer(sql::SQLString PUsername, sql::SQLString PPassword)
+{
+	int enemiesKilled = 0;
+	std::vector<int> Sesiones;
+	int id_cuenta;
+	int i;
+
+	prep_stmt = conn->prepareStatement("SELECT id_cuenta from cuenta WHERE nick = ? && password = ?");
+	prep_stmt->setString(1, PUsername);
+	prep_stmt->setString(2, PPassword);
+	res = prep_stmt->executeQuery();
+
+	//COGEMOS EL ID DEL USUARIO
+	res = prep_stmt->executeQuery();
+	while (res->next())
+	{
+		id_cuenta = res->getInt("id_cuenta");
+	}
+
+	//TODAS LAS SESIONES QUE TENGA
+	prep_stmt = conn->prepareStatement("SELECT id_sesion from sesiones WHERE cuenta = ?");
+	prep_stmt->setInt(1, id_cuenta);
+	res = prep_stmt->executeQuery();
+
+	while (res->next())
+	{
+		Sesiones.push_back(res->getInt("id_sesion"));
+	}
+
+	//TODOS LOS MONSTRUOS MATADOS DE LA PARTIDA
+	for (int i = 0; i < Sesiones.size(); i++)
+	{
+		prep_stmt = conn->prepareStatement("SELECT monstruos_matados from partida WHERE sesion = ?");
+		prep_stmt->setInt(1, Sesiones[i]);
+		res = prep_stmt->executeQuery();
+
+		while (res->next())
+		{
+			enemiesKilled += res->getInt("monstruos_matados");
+		}
+	}
+
+	delete res;
+	delete prep_stmt;
+
+	return enemiesKilled;
+}
+
 BD::~BD()
 {
 	conn->close();
