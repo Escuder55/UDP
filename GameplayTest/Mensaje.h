@@ -8,6 +8,7 @@ public:
 
 	//ATTRIBUTES
 	int id;
+	PROTOCOLO protocolo;
 	sf::Packet pack;
 
 	Mensaje();

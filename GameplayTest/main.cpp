@@ -124,6 +124,8 @@ std::vector<waitingPlayer> playersWaitingMap1;
 std::vector<waitingPlayer> playersWaitingMap2;
 std::vector<waitingPlayer> playersWaitingMap3;
 
+std::multimap<int, Mensaje> listOfCritics;
+
 int games = 0;
 gameProxy auxGame;
 
@@ -264,13 +266,13 @@ void ServerReceive()
 					auxPlayerProxy.id = numPlayers;
 					playersConnecteds.push_back(auxPlayerProxy);
 
-					playersConnecteds[getId(adress, port)].Critic_Message.insert({ PROTOCOLO::HELLO, Mensaje(playersConnecteds[getId(adress, port)].counterPacket, pack) });
+					playersConnecteds[getId(adress, port)].Regular_Message.insert({ PROTOCOLO::HELLO, Mensaje(playersConnecteds[getId(adress, port)].counterPacket, pack) });
 
 					std::cout << " Se ha recibido un nuevo cliente." << std::endl;
 				}
 				else
 				{
-					playersConnecteds[getId(adress, port)].Critic_Message.insert({ PROTOCOLO::HELLO, Mensaje(playersConnecteds[getId(adress, port)].counterPacket, pack) });					
+					playersConnecteds[getId(adress, port)].Regular_Message.insert({ PROTOCOLO::HELLO, Mensaje(playersConnecteds[getId(adress, port)].counterPacket, pack) });
 				}
 
 
@@ -278,17 +280,17 @@ void ServerReceive()
 			}
 			case PROTOCOLO::REGISTER:
 			{
-				playersConnecteds[getId(adress, port)].Critic_Message.insert({ PROTOCOLO::REGISTER, Mensaje(playersConnecteds[getId(adress, port)].counterPacket, pack) });
+				playersConnecteds[getId(adress, port)].Regular_Message.insert({ PROTOCOLO::REGISTER, Mensaje(playersConnecteds[getId(adress, port)].counterPacket, pack) });
 				break;
 			}
 			case PROTOCOLO::LOGIN:
 			{				
-				playersConnecteds[getId(adress, port)].Critic_Message.insert({PROTOCOLO::LOGIN, Mensaje(playersConnecteds[getId(adress, port)].counterPacket, pack)});				
+				playersConnecteds[getId(adress, port)].Regular_Message.insert({PROTOCOLO::LOGIN, Mensaje(playersConnecteds[getId(adress, port)].counterPacket, pack)});
 				break;
 			}
 			case PROTOCOLO::WANTPLAY:
 			{
-				playersConnecteds[getId(adress, port)].Critic_Message.insert({ PROTOCOLO::WANTPLAY, Mensaje(playersConnecteds[getId(adress, port)].counterPacket, pack) });
+				playersConnecteds[getId(adress, port)].Regular_Message.insert({ PROTOCOLO::WANTPLAY, Mensaje(playersConnecteds[getId(adress, port)].counterPacket, pack) });
 				pack >> auxSala;
 				switch (auxSala)
 				{
@@ -324,7 +326,7 @@ void ServerReceive()
 				}
 				if (gamesProxy.size() == 0)
 				{					
-					games++;
+					//games++;
 					//gamesProxy.push_back{games,});
 				}
 				break;
@@ -342,8 +344,8 @@ void ServerReceive()
 	}
 	std::cout << "fuga" << std::endl;
 }
-//THREAD PAQUETES CRÍTICOS
-void SendCriticPack()
+//THREAD PAQUETES NORMALES
+void SendRegularPack()
 {
 
 	//////////// ------------ VARIABLES A UTILIZAR ------------ ////////////
@@ -375,41 +377,41 @@ void SendCriticPack()
 	{
 		if (!playersConnecteds.empty())
 		{
-			if (!playersConnecteds[iterador].Critic_Message.empty())
+			if (!playersConnecteds[iterador].Regular_Message.empty())
 			{
-				if (aux < playersConnecteds[iterador].Critic_Message.count(PROTOCOLO::HELLO))
+				if (aux < playersConnecteds[iterador].Regular_Message.count(PROTOCOLO::HELLO))
 				{
-					aux = playersConnecteds[iterador].Critic_Message.count(PROTOCOLO::HELLO);
+					aux = playersConnecteds[iterador].Regular_Message.count(PROTOCOLO::HELLO);
 					auxProtocolo = PROTOCOLO::HELLO;
 					std::cout << "0" << std::endl;
 				}
-				if (aux < playersConnecteds[iterador].Critic_Message.count(PROTOCOLO::LOGIN))
+				if (aux < playersConnecteds[iterador].Regular_Message.count(PROTOCOLO::LOGIN))
 				{
-					aux = playersConnecteds[iterador].Critic_Message.count(PROTOCOLO::LOGIN);
+					aux = playersConnecteds[iterador].Regular_Message.count(PROTOCOLO::LOGIN);
 					auxProtocolo = PROTOCOLO::LOGIN;
 					std::cout << "1" << std::endl;
 				}
-				if (aux < playersConnecteds[iterador].Critic_Message.count(PROTOCOLO::REGISTER))
+				if (aux < playersConnecteds[iterador].Regular_Message.count(PROTOCOLO::REGISTER))
 				{
-					aux = playersConnecteds[iterador].Critic_Message.count(PROTOCOLO::REGISTER);
+					aux = playersConnecteds[iterador].Regular_Message.count(PROTOCOLO::REGISTER);
 					auxProtocolo = PROTOCOLO::REGISTER;
 					std::cout << "2" << std::endl;
 				}
-				if (aux < playersConnecteds[iterador].Critic_Message.count(PROTOCOLO::ROOMCHANGE))
+				if (aux < playersConnecteds[iterador].Regular_Message.count(PROTOCOLO::ROOMCHANGE))
 				{
-					aux = playersConnecteds[iterador].Critic_Message.count(PROTOCOLO::ROOMCHANGE);
+					aux = playersConnecteds[iterador].Regular_Message.count(PROTOCOLO::ROOMCHANGE);
 					auxProtocolo = PROTOCOLO::ROOMCHANGE;
 					std::cout << "3" << std::endl;
 				}
-				if (aux < playersConnecteds[iterador].Critic_Message.count(PROTOCOLO::DISCONECTED))
+				if (aux < playersConnecteds[iterador].Regular_Message.count(PROTOCOLO::DISCONECTED))
 				{
-					aux = playersConnecteds[iterador].Critic_Message.count(PROTOCOLO::DISCONECTED);
+					aux = playersConnecteds[iterador].Regular_Message.count(PROTOCOLO::DISCONECTED);
 					auxProtocolo = PROTOCOLO::DISCONECTED;
 					std::cout << "4" << std::endl;
 				}
-				if (aux < playersConnecteds[iterador].Critic_Message.count(PROTOCOLO::WANTPLAY))
+				if (aux < playersConnecteds[iterador].Regular_Message.count(PROTOCOLO::WANTPLAY))
 				{
-					aux = playersConnecteds[iterador].Critic_Message.count(PROTOCOLO::WANTPLAY);
+					aux = playersConnecteds[iterador].Regular_Message.count(PROTOCOLO::WANTPLAY);
 					auxProtocolo = PROTOCOLO::WANTPLAY;
 					std::cout << "5" << std::endl;
 				}
@@ -426,14 +428,14 @@ void SendCriticPack()
 						socket.send(auxPacket, playersConnecteds[iterador].IP_Adress, playersConnecteds[iterador].port);
 
 						/////// ----------- BORRAMOS EL MENSAJE DE LA LISTA DE CRITICOS ------------- ///////
-						playersConnecteds[iterador].Critic_Message.erase(playersConnecteds[iterador].Critic_Message.find(auxProtocolo));
+						playersConnecteds[iterador].Regular_Message.erase(playersConnecteds[iterador].Regular_Message.find(auxProtocolo));
 						break;
 					}
 					case REGISTER:
 					{
 						std::cout << "CONTESTANDO AL SIGN UP\n";
 
-						auxPacket = playersConnecteds[iterador].Critic_Message.find(auxProtocolo)->second.pack;
+						auxPacket = playersConnecteds[iterador].Regular_Message.find(auxProtocolo)->second.pack;
 
 						auxPacket >> auxId;
 						auxPacket >> auxIdPacket;
@@ -493,14 +495,14 @@ void SendCriticPack()
 						socket.send(auxPacket, playersConnecteds[iterador].IP_Adress, playersConnecteds[iterador].port);
 
 						/////// ----------- BORRAMOS EL MENSAJE DE LA LISTA DE CRITICOS ------------- ///////
-						playersConnecteds[iterador].Critic_Message.erase(playersConnecteds[iterador].Critic_Message.find(auxProtocolo));
+						playersConnecteds[iterador].Regular_Message.erase(playersConnecteds[iterador].Regular_Message.find(auxProtocolo));
 						break;
 					}
 					case LOGIN:
 					{
 						std::cout << "CONTESTANDO AL LOG IN\n";
 
-						auxPacket = playersConnecteds[iterador].Critic_Message.find(auxProtocolo)->second.pack;
+						auxPacket = playersConnecteds[iterador].Regular_Message.find(auxProtocolo)->second.pack;
 
 						auxPacket >> auxId;
 						auxPacket >> auxIdPacket;
@@ -546,7 +548,7 @@ void SendCriticPack()
 								std::cout << "he recibido el intento de login pero no coincie con ningun usuario " << std::endl;
 							}
 						}					
-							playersConnecteds[iterador].Critic_Message.erase(playersConnecteds[iterador].Critic_Message.find(auxProtocolo));
+							playersConnecteds[iterador].Regular_Message.erase(playersConnecteds[iterador].Regular_Message.find(auxProtocolo));
 						break;
 					}
 					case WANTPLAY:
@@ -557,7 +559,7 @@ void SendCriticPack()
 						socket.send(auxPacket, playersConnecteds[iterador].IP_Adress, playersConnecteds[iterador].port);
 
 						/////// ----------- BORRAMOS EL MENSAJE DE LA LISTA DE CRITICOS ------------- ///////
-						playersConnecteds[iterador].Critic_Message.erase(playersConnecteds[iterador].Critic_Message.find(auxProtocolo));
+						playersConnecteds[iterador].Regular_Message.erase(playersConnecteds[iterador].Regular_Message.find(auxProtocolo));
 
 						break;
 					}
@@ -652,7 +654,38 @@ void SendCriticPack()
 
 }
 
+//THREAD PAQUETES CRÍTICOS
+void SendCriticPack()
+{
+	//////////// ------------ VARIABLES A UTILIZAR ------------ ////////////
+	int iterador = 0;
+	int aux = 0;
+	bool newPlayer = true;
+	int currentId;
 
+	std::string username;
+	std::string password;
+	std::string repeatPassword;
+
+	//KILLED MONSTERS
+	int KilledMonsters;
+
+	//std::cout << "Adress: " << adress << std::endl;
+	//std::cout << "Port: " << port << std::endl;
+
+	sf::Packet auxPacket;
+
+	//PROTOCOLO A DAR
+	int auxOrder;
+	PROTOCOLO auxProtocolo = PROTOCOLO::NONEPROTOCOLO;
+
+	//////// --------------- INICIALIZAR EL RELOJ QUE COMPRUEBA EL MATCHMAKING  --------------- ////////
+	startTime = clock();
+
+	while (true)
+	{
+	}
+}
 //////////////////////////////////////////
 ////////////////////////////////////////// SERVER
 //////////////////////////////////////////
@@ -671,6 +704,9 @@ void serverMain()
 	//THREAD RECEIVE
 	std::thread threadServer(&ServerReceive);
 	threadServer.detach();
+
+	std::thread threadRegular(&SendRegularPack);
+	threadRegular.detach();
 
 	std::thread threadCritic(&SendCriticPack);
 	threadCritic.detach();
