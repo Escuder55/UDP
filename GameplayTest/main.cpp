@@ -355,13 +355,14 @@ void ServerReceive()
 			case PROTOCOLO::STARTGAMEACCEPTED:
 				std::cout << "aqui 1" << std::endl;				
 				mutex.lock();
-				playersConnecteds[getId(adress, port)].Critic_Message.erase(PROTOCOLO::STARTGAME);
+				if (playersConnecteds[getId(adress, port)].Critic_Message.count(PROTOCOLO::STARTGAME) > 0)
+				{
+					playersConnecteds[getId(adress, port)].Critic_Message.erase(PROTOCOLO::STARTGAME);
+				}
 				mutex.unlock();
 				break;
 			default:
-				{
 					break;
-				}
 			}
 		}
 		else if(status != sf::Socket::Done)
@@ -402,8 +403,10 @@ void SendRegularPack()
 	//////// --------------- INICIALIZAR EL RELOJ QUE COMPRUEBA EL MATCHMAKING  --------------- ////////
 	startTime = clock();
 
+
 	while (true)
 	{
+
 		if (!playersConnecteds.empty())
 		{
 			tonteria = playersConnecteds[iterador].Regular_Message.size();
@@ -687,8 +690,8 @@ void SendRegularPack()
 
 					auxPacket.clear();
 					auxPacket << PROTOCOLO::STARTGAME;
-					auxPacket << playersConnecteds[idPlayers[0]].id << 200 << 150;
-					auxPacket << playersConnecteds[idPlayers[1]].id << 700 << 150;
+					auxPacket << playersConnecteds[idPlayers[0]].id << 200.f << 150.f;
+					auxPacket << playersConnecteds[idPlayers[1]].id << 700.f << 150.f;
 					//auxPacket << playersConnecteds[idPlayers[2]].id << 100 << 400;
 					//auxPacket << playersConnecteds[idPlayers[3]].id << 700 << 400;
 
@@ -777,6 +780,9 @@ void SendCriticPack()
 
 	while (true)
 	{
+		endTime = clock();
+		clockTicksTaken = endTime - startTime;
+		timeInSeconds = clockTicksTaken / (double)CLOCKS_PER_SEC;
 		if (!playersConnecteds.empty())
 		{
 			if (! (playersConnecteds[iterador].Critic_Message.empty()))
@@ -802,8 +808,17 @@ void SendCriticPack()
 				{
 				case STARTGAME:
 				{
-					std::cout << "ENVIANDO EL CRITICO DE START GAME. \n";
-					socket.send(playersConnecteds[iterador].Critic_Message.find(PROTOCOLO::STARTGAME)->second.pack, playersConnecteds[iterador].IP_Adress, playersConnecteds[iterador].port);
+					if (timeInSeconds > 2.5) 
+					{
+						startTime = clock();
+						std::cout << "ENVIANDO EL CRITICO DE START GAME. \n";
+						mutex.lock();
+						if(playersConnecteds[iterador].Critic_Message.count(PROTOCOLO::STARTGAME)>0)
+						{
+							socket.send(playersConnecteds[iterador].Critic_Message.find(PROTOCOLO::STARTGAME)->second.pack, playersConnecteds[iterador].IP_Adress, playersConnecteds[iterador].port);
+						}
+						mutex.unlock();
+					}
 					break;
 				}
 				case ROOMCHANGE:
@@ -900,17 +915,19 @@ void ClientReceive()
 			//RECOGEMOS VARIABLES
 			int auxOrder;
 			packRecieve >> auxOrder;
-			packRecieve >> proxy.id;
 
 			orders = static_cast<PROTOCOLO>(auxOrder);
 
 			switch (orders)
 			{
 			case PROTOCOLO::WELCOME:
+				packRecieve >> proxy.id;
 				helloMessage = true;
 				std::cout << "El servidor te da la bienvenida con el siguiente id: " << proxy.id << std::endl;
 				break;
 			case PROTOCOLO::LOGINACCEPTED:
+
+				packRecieve >> proxy.id;
 				packRecieve >> YouCanLogin;
 				std::cout << "Me puedo conectar: " << YouCanLogin << std::endl;
 				if (YouCanLogin)
@@ -927,6 +944,7 @@ void ClientReceive()
 				}
 				break;
 			case PROTOCOLO::REGISTERACCEPTED:
+				packRecieve >> proxy.id;
 				packRecieve >> YouCanSignUp;
 				std::cout << "Me puedo registrar: " << YouCanSignUp << std::endl;
 				if (YouCanSignUp)
@@ -951,17 +969,21 @@ void ClientReceive()
 					packRecieve >> teamMateAux.id;
 					packRecieve >> teamMateAux.posX;
 					packRecieve >> teamMateAux.posY;
+
 					myGame.players.push_back(teamMateAux);
+
+					std::cout << "id :" << teamMateAux.id << " " << teamMateAux.posX << " " << teamMateAux.posY << std::endl;
+
 					packRecieve >> teamMateAux.id;
 					packRecieve >> teamMateAux.posX;
 					packRecieve >> teamMateAux.posY;
 					myGame.players.push_back(teamMateAux);
+					std::cout << "id :" << teamMateAux.id << " " << teamMateAux.posX << " " << teamMateAux.posY << std::endl;
 				}
 				//Hacemos send de vuelta para que pare de enviar el critico.
 				packRecieve.clear();
 				packRecieve << PROTOCOLO::STARTGAMEACCEPTED;
 				socket.send(packRecieve, proxy.IP_Adress, proxy.port);
-				std::cout << "Ha entradoooooooooooooooooooo" << std::endl;
 				//Ponerme a mi
 				break;
 			default:
