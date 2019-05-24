@@ -209,16 +209,16 @@ void ServerReceive()
 	BaseDatos->InitBaseDatos();
 
 	map1 = BaseDatos->getMap1();
-	map2 = BaseDatos->getMap2();
-	map3 = BaseDatos->getMap3();
+	//map2 = BaseDatos->getMap2();
+	//map3 = BaseDatos->getMap3();
 
 	//// --------------------- BINARY TREES -------------------- ////
 	BinaryTree BST;
 
 	//// -------------------- MONSTERS SALA -------------------- ////
 	map1.enemiesMap = BaseDatos->getMonsterMap1();
-	map2.enemiesMap = BaseDatos->getMonsterMap2();
-	map3.enemiesMap = BaseDatos->getMonsterMap3();
+	//map2.enemiesMap = BaseDatos->getMonsterMap2();
+	//map3.enemiesMap = BaseDatos->getMonsterMap3();
 
 	/*for (int i = 0; i < map1.enemiesMap.size(); i++)
 	{
@@ -281,9 +281,9 @@ void ServerReceive()
 					auxPlayerProxy.port = port;
 					auxPlayerProxy.id = numPlayers;
 					playersConnecteds.push_back(auxPlayerProxy);
-
+					mutex.lock();
 					playersConnecteds[getId(adress, port)].Regular_Message.insert({ PROTOCOLO::HELLO, Mensaje(playersConnecteds[getId(adress, port)].counterPacket, pack) });
-
+					mutex.unlock();
 					std::cout << " Se ha recibido un nuevo cliente." << std::endl;
 				}
 				else
@@ -347,6 +347,10 @@ void ServerReceive()
 				}
 				break;
 			}
+			case PROTOCOLO::STARTGAMEACCEPTED:
+				std::cout << "aqui 1" << std::endl;				
+				playersConnecteds[getId(adress, port)].Critic_Message.erase(playersConnecteds[getId(adress, port)].Critic_Message.find(PROTOCOLO::STARTGAMEACCEPTED));
+				break;
 			default:
 				{
 					break;
@@ -360,6 +364,7 @@ void ServerReceive()
 	}
 	std::cout << "fuga" << std::endl;
 }
+
 //THREAD PAQUETES NORMALES
 void SendRegularPack()
 {
@@ -386,6 +391,7 @@ void SendRegularPack()
 	int auxOrder;
 	PROTOCOLO auxProtocolo= PROTOCOLO::NONEPROTOCOLO;
 
+	int tonteria = 0;
 	//////// --------------- INICIALIZAR EL RELOJ QUE COMPRUEBA EL MATCHMAKING  --------------- ////////
 	startTime = clock();
 
@@ -393,13 +399,17 @@ void SendRegularPack()
 	{
 		if (!playersConnecteds.empty())
 		{
-			if (!playersConnecteds[iterador].Regular_Message.empty())
+			tonteria = playersConnecteds[iterador].Regular_Message.size();
+			if (tonteria > 0)
 			{
+				auxProtocolo = PROTOCOLO::NONEPROTOCOLO;
+				aux = 0;
+				std::cout << " Jugador nº: " << iterador << std::endl;
 				if (aux < playersConnecteds[iterador].Regular_Message.count(PROTOCOLO::HELLO))
 				{
 					aux = playersConnecteds[iterador].Regular_Message.count(PROTOCOLO::HELLO);
 					auxProtocolo = PROTOCOLO::HELLO;
-					std::cout << "0" << std::endl;
+					//std::cout << "0" << std::endl;
 				}
 				if (aux < playersConnecteds[iterador].Regular_Message.count(PROTOCOLO::LOGIN))
 				{
@@ -444,7 +454,9 @@ void SendRegularPack()
 						socket.send(auxPacket, playersConnecteds[iterador].IP_Adress, playersConnecteds[iterador].port);
 
 						/////// ----------- BORRAMOS EL MENSAJE DE LA LISTA DE CRITICOS ------------- ///////
-						playersConnecteds[iterador].Regular_Message.erase(playersConnecteds[iterador].Regular_Message.find(auxProtocolo));
+						mutex.lock();
+						playersConnecteds[iterador].Regular_Message.erase(auxProtocolo);
+						mutex.unlock();
 						break;
 					}
 					case REGISTER:
@@ -511,7 +523,7 @@ void SendRegularPack()
 						socket.send(auxPacket, playersConnecteds[iterador].IP_Adress, playersConnecteds[iterador].port);
 
 						/////// ----------- BORRAMOS EL MENSAJE DE LA LISTA DE CRITICOS ------------- ///////
-						playersConnecteds[iterador].Regular_Message.erase(playersConnecteds[iterador].Regular_Message.find(auxProtocolo));
+						playersConnecteds[iterador].Regular_Message.erase(auxProtocolo);
 						break;
 					}
 					case LOGIN:
@@ -564,7 +576,7 @@ void SendRegularPack()
 								std::cout << "he recibido el intento de login pero no coincie con ningun usuario " << std::endl;
 							}
 						}					
-							playersConnecteds[iterador].Regular_Message.erase(playersConnecteds[iterador].Regular_Message.find(auxProtocolo));
+							playersConnecteds[iterador].Regular_Message.erase(auxProtocolo);
 						break;
 					}
 					case WANTPLAY:
@@ -575,7 +587,7 @@ void SendRegularPack()
 						socket.send(auxPacket, playersConnecteds[iterador].IP_Adress, playersConnecteds[iterador].port);
 
 						/////// ----------- BORRAMOS EL MENSAJE DE LA LISTA DE CRITICOS ------------- ///////
-						playersConnecteds[iterador].Regular_Message.erase(playersConnecteds[iterador].Regular_Message.find(auxProtocolo));
+						playersConnecteds[iterador].Regular_Message.erase(auxProtocolo);
 
 						break;
 					}
@@ -598,7 +610,9 @@ void SendRegularPack()
 						break;
 					}
 				}
+
 				iterador++;
+
 				if (iterador > playersConnecteds.size()-1)
 				{
 					iterador = 0;
@@ -615,16 +629,17 @@ void SendRegularPack()
 			}
 		}
 
-		endTime = clock();
+		/*endTime = clock();
 		clockTicksTaken = endTime - startTime;
-		timeInSeconds = clockTicksTaken / (double)CLOCKS_PER_SEC;
+		timeInSeconds = clockTicksTaken / (double)CLOCKS_PER_SEC;*/
 
-		if (timeInSeconds >= 5)
+		/*if (timeInSeconds >= 5)
 		{
 			startTime = clock();
 			int playerForMap1 = 0;
 			int playerForMap2 = 0;
 			int playerForMap3 = 0;
+			int idPlayers[4] = {-1,-1,-1,-1};
 			//Ordenamos maps wantplay de cada mapa
 
 			/////////// -------------- HACER EL MATCHMAKING MAPA1-------------- //////////////
@@ -637,12 +652,35 @@ void SendRegularPack()
 					for (int i=0;i<4;i++)
 					{
 						//rellenar Players
-												
+						for (int j = 0; j < playersConnecteds.size();j++)
+						{
+							if (playersWaitingMap1.front().id == playersConnecteds[j].id)
+							{
+								gamesProxy.back().players.push_back(playersConnecteds[j]);
+								playersWaitingMap1.erase(playersWaitingMap1.begin());
+								idPlayers[i] = j;
+							}
+						}
+						
 					}
 					for (int i=0;i<map1.enemiesMap.size();i++)
 					{
-						//gamesProxy.back().EnemiesGame.pushback(map1.enemiesMap[i]);
+						gamesProxy.back().EnemiesGame = map1.enemiesMap;
 					}
+
+					auxPacket.clear();
+					auxPacket << PROTOCOLO::STARTGAME;
+					auxPacket << playersConnecteds[idPlayers[0]].id << 200 << 150;
+					auxPacket << playersConnecteds[idPlayers[1]].id << 700 << 150;
+					auxPacket << playersConnecteds[idPlayers[2]].id << 100 << 400;
+					auxPacket << playersConnecteds[idPlayers[3]].id << 700 << 400;
+
+					for (int i = 0; i < 4; i++)
+					{
+						
+						playersConnecteds[i].Critic_Message.insert({ PROTOCOLO::STARTGAME,Mensaje(0,auxPacket) });
+					}
+					
 				}
 				else if (playersWaitingMap1.size() >= 4)
 				{
@@ -686,7 +724,7 @@ void SendRegularPack()
 			//
 			//
 			//////////////////////////////////////////////////////////////////////////////////
-		}
+		}*/
 
 	}
 
@@ -722,6 +760,69 @@ void SendCriticPack()
 
 	while (true)
 	{
+		if (!playersConnecteds.empty())
+		{
+			if (!playersConnecteds[iterador].Critic_Message.empty())
+			{
+
+				if (aux < playersConnecteds[iterador].Critic_Message.count(PROTOCOLO::ROOMCHANGE))
+				{
+					aux = playersConnecteds[iterador].Critic_Message.count(PROTOCOLO::ROOMCHANGE);
+					auxProtocolo = PROTOCOLO::ROOMCHANGE;
+				}
+				if (aux < playersConnecteds[iterador].Critic_Message.count(PROTOCOLO::DISCONECTED))
+				{
+					aux = playersConnecteds[iterador].Critic_Message.count(PROTOCOLO::DISCONECTED);
+					auxProtocolo = PROTOCOLO::DISCONECTED;
+				}
+				if (aux < playersConnecteds[iterador].Critic_Message.count(PROTOCOLO::STARTGAME))
+				{
+					aux = playersConnecteds[iterador].Critic_Message.count(PROTOCOLO::WANTPLAY);
+					auxProtocolo = PROTOCOLO::WANTPLAY;
+				}
+
+				switch (auxProtocolo)
+				{
+				case STARTGAME:
+				{
+					std::cout << "ENVIANDO EL CRITICO DE START GAME. \n";
+					socket.send(playersConnecteds[iterador].Critic_Message.find(PROTOCOLO::STARTGAME)->second.pack, playersConnecteds[iterador].IP_Adress, playersConnecteds[iterador].port);
+					break;
+				}
+				case ROOMCHANGE:
+				{
+					std::cout << "ENVIANDO EL CRITICO DE ROOM CHANGE. \n";
+					socket.send(playersConnecteds[iterador].Critic_Message.find(PROTOCOLO::STARTGAME)->second.pack, playersConnecteds[iterador].IP_Adress, playersConnecteds[iterador].port);
+					break;
+				}
+				case DISCONECTED:
+				{
+					std::cout << "ENVIANDO EL CRITICO DE DISCONECTED. \n";
+					socket.send(playersConnecteds[iterador].Critic_Message.find(PROTOCOLO::STARTGAME)->second.pack, playersConnecteds[iterador].IP_Adress, playersConnecteds[iterador].port);
+					break;
+				}
+				default:
+				{
+					//std::cout << "BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB\n";
+					break;
+				}
+				}
+				iterador++;
+				if (iterador > playersConnecteds.size() - 1)
+				{
+					iterador = 0;
+				}
+				aux = 0;
+			}
+			else
+			{
+				iterador++;
+				if (iterador > playersConnecteds.size() - 1)
+				{
+					iterador = 0;
+				}
+			}
+		}
 	}
 }
 //////////////////////////////////////////
@@ -746,8 +847,8 @@ void serverMain()
 	std::thread threadRegular(&SendRegularPack);
 	threadRegular.detach();
 
-	std::thread threadCritic(&SendCriticPack);
-	threadCritic.detach();
+	//std::thread threadCritic(&SendCriticPack);
+	//threadCritic.detach();
 	while (1)
 	{
 
