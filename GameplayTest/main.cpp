@@ -658,11 +658,13 @@ void SendRegularPack()
 						//rellenar Players
 						for (int j = 0; j < playersConnecteds.size();j++)
 						{
-							if (playersWaitingMap1.front().id == playersConnecteds[j].id)
-							{
-								gamesProxy.back().players.push_back(playersConnecteds[j]);
-								playersWaitingMap1.erase(playersWaitingMap1.begin());
-								idPlayers[i] = j;
+							if (!playersWaitingMap1.empty()) {
+								if (playersWaitingMap1.front().id == playersConnecteds[j].id)
+								{
+									gamesProxy.back().players.push_back(playersConnecteds[j]);
+									playersWaitingMap1.erase(playersWaitingMap1.begin());
+									idPlayers[i] = j;
+								}
 							}
 						}
 						
@@ -679,6 +681,7 @@ void SendRegularPack()
 					//auxPacket << playersConnecteds[idPlayers[2]].id << 100 << 400;
 					//auxPacket << playersConnecteds[idPlayers[3]].id << 700 << 400;
 
+					//BUSCAR POR ID!
 					for (int i = 0; i < 2; i++)
 					{
 						
@@ -720,16 +723,6 @@ void SendRegularPack()
 						//gamesProxy.back().EnemiesGame.pushback(map1.enemiesMap[i]);
 					}
 				}
-			
-			/////////// -------------- HACER EL MATCHMAKING MAPA2-------------- //////////////
-			//
-			//
-			//
-			/////////// -------------- HACER EL MATCHMAKING MAPA3-------------- //////////////
-			//
-			//
-			//
-			//////////////////////////////////////////////////////////////////////////////////
 		}
 
 	}
