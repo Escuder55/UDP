@@ -49,6 +49,8 @@ PlayerProxy proxy;
 //PLAYER PROXIES
 std::vector<PlayerProxy> playersConnecteds;
 
+
+
 ////////////////////////////////////////funcio para encontrar la id del usuario que envia el mensaje
 int getId(sf::IpAddress _adres, unsigned short _port)
 {
@@ -110,7 +112,7 @@ struct gameProxy
 	int idMAp;
 	std::vector<PlayerProxy> players;
 	std::vector<Enemy> EnemiesGame;
-
+	bool full = false;
 };
 struct waitingPlayer
 {
@@ -133,7 +135,9 @@ std::multimap<int, Mensaje> listOfCritics;
 
 int games = 0;
 gameProxy auxGame;
+///////////////////////////////////////// CLIENTE PARTIDA
 
+gameProxy myGame;
 
 /////////////////////MUTEX
 std::mutex mutex;
@@ -350,7 +354,9 @@ void ServerReceive()
 			}
 			case PROTOCOLO::STARTGAMEACCEPTED:
 				std::cout << "aqui 1" << std::endl;				
-				playersConnecteds[getId(adress, port)].Critic_Message.erase(playersConnecteds[getId(adress, port)].Critic_Message.find(PROTOCOLO::STARTGAMEACCEPTED));
+				mutex.lock();
+				playersConnecteds[getId(adress, port)].Critic_Message.erase(PROTOCOLO::STARTGAME);
+				mutex.unlock();
 				break;
 			default:
 				{
@@ -658,17 +664,22 @@ void SendRegularPack()
 						//rellenar Players
 						for (int j = 0; j < playersConnecteds.size();j++)
 						{
-							if (!playersWaitingMap1.empty()) {
-								if (playersWaitingMap1.front().id == playersConnecteds[j].id)
-								{
-									gamesProxy.back().players.push_back(playersConnecteds[j]);
-									playersWaitingMap1.erase(playersWaitingMap1.begin());
-									idPlayers[i] = j;
-								}
-							}
+							if (playersWaitingMap1[i].id == playersConnecteds[j].id)
+							{
+								gamesProxy.back().players.push_back(playersConnecteds[j]);
+								//playersWaitingMap1.erase(playersWaitingMap1.begin());
+								idPlayers[i] = j;
+								std::cout << "UNA VEZ!!!!!!!!!!!!!!!!!!!!!!!!" <<j<< std::endl;
+							}							
 						}
 						
 					}
+
+					for (int i = 0; i < 2; i++)
+					{
+						playersWaitingMap1.erase(playersWaitingMap1.begin());
+					}
+
 					for (int i=0;i<map1.enemiesMap.size();i++)
 					{
 						gamesProxy.back().EnemiesGame = map1.enemiesMap;
@@ -683,13 +694,20 @@ void SendRegularPack()
 
 					//BUSCAR POR ID!
 					for (int i = 0; i < 2; i++)
-					{
-						
-						playersConnecteds[i].Critic_Message.insert({ PROTOCOLO::STARTGAME,Mensaje(0,auxPacket) });
+					{	
+						for (int j = 0; j < playersConnecteds.size(); j++)
+						{
+							if (gamesProxy.back().players[i].id== playersConnecteds[j].id)
+							{
+								mutex.lock();
+								playersConnecteds[j].Critic_Message.insert({ PROTOCOLO::STARTGAME,Mensaje(0,auxPacket) });
+								mutex.unlock();
+							}							
+						}						
 					}
 					
 				}
-				else if (playersWaitingMap2.size() >= 2)
+				if (playersWaitingMap2.size() >= 2)
 				{
 					//crear partida y push
 					std::cout << "EMPIEZA LA PARTIDA" << std::endl;
@@ -706,7 +724,7 @@ void SendRegularPack()
 						//gamesProxy.back().EnemiesGame.pushback(map1.enemiesMap[i]);
 					}
 				}
-				else if (playersWaitingMap3.size() >= 4)
+				if (playersWaitingMap3.size() >= 4)
 				{
 					//crear partida y push
 					std::cout << "EMPIEZA LA PARTIDA" << std::endl;
@@ -761,7 +779,7 @@ void SendCriticPack()
 	{
 		if (!playersConnecteds.empty())
 		{
-			if (!playersConnecteds[iterador].Critic_Message.empty())
+			if (! (playersConnecteds[iterador].Critic_Message.empty()))
 			{
 
 				if (aux < playersConnecteds[iterador].Critic_Message.count(PROTOCOLO::ROOMCHANGE))
@@ -776,8 +794,8 @@ void SendCriticPack()
 				}
 				if (aux < playersConnecteds[iterador].Critic_Message.count(PROTOCOLO::STARTGAME))
 				{
-					aux = playersConnecteds[iterador].Critic_Message.count(PROTOCOLO::WANTPLAY);
-					auxProtocolo = PROTOCOLO::WANTPLAY;
+					aux = playersConnecteds[iterador].Critic_Message.count(PROTOCOLO::STARTGAME);
+					auxProtocolo = PROTOCOLO::STARTGAME;
 				}
 
 				switch (auxProtocolo)
@@ -824,9 +842,11 @@ void SendCriticPack()
 		}
 	}
 }
+
 //////////////////////////////////////////
 ////////////////////////////////////////// SERVER
 //////////////////////////////////////////
+
 void serverMain()
 {	
 	status = socket.bind(PORT);
@@ -846,8 +866,8 @@ void serverMain()
 	std::thread threadRegular(&SendRegularPack);
 	threadRegular.detach();
 
-	//std::thread threadCritic(&SendCriticPack);
-	//threadCritic.detach();
+	std::thread threadCritic(&SendCriticPack);
+	threadCritic.detach();
 	while (1)
 	{
 
@@ -860,6 +880,7 @@ void ClientReceive()
 	sf::IpAddress auxIP;
 	unsigned short auxport;
 	sf::Packet packRecieve;
+	PlayerProxy teamMateAux;
 	while (true)
 	{
 
@@ -875,7 +896,7 @@ void ClientReceive()
 		}
 		else
 		{
-			std::cout << "Se ha recibido el mensaje" << std::endl;
+			//std::cout << "Se ha recibido el mensaje" << std::endl;
 			//RECOGEMOS VARIABLES
 			int auxOrder;
 			packRecieve >> auxOrder;
@@ -922,7 +943,26 @@ void ClientReceive()
 				break;
 			case PROTOCOLO::WANTPLAYACCEPTED:
 				currentScene->finishSending = true;
-				
+				break;
+			case PROTOCOLO::STARTGAME:
+				//En caso de no estar llena la llenamos
+				if (myGame.full == false)
+				{
+					packRecieve >> teamMateAux.id;
+					packRecieve >> teamMateAux.posX;
+					packRecieve >> teamMateAux.posY;
+					myGame.players.push_back(teamMateAux);
+					packRecieve >> teamMateAux.id;
+					packRecieve >> teamMateAux.posX;
+					packRecieve >> teamMateAux.posY;
+					myGame.players.push_back(teamMateAux);
+				}
+				//Hacemos send de vuelta para que pare de enviar el critico.
+				packRecieve.clear();
+				packRecieve << PROTOCOLO::STARTGAMEACCEPTED;
+				socket.send(packRecieve, proxy.IP_Adress, proxy.port);
+				std::cout << "Ha entradoooooooooooooooooooo" << std::endl;
+				//Ponerme a mi
 				break;
 			default:
 				break;
