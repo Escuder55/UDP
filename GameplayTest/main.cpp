@@ -357,7 +357,7 @@ void ServerReceive()
 				mutex.lock();
 				if (playersConnecteds[getId(adress, port)].Critic_Message.count(PROTOCOLO::STARTGAME) > 0)
 				{
-					playersConnecteds[getId(adress, port)].Critic_Message.erase(PROTOCOLO::STARTGAME);
+					playersConnecteds[getId(adress, port)].Critic_Message.find(PROTOCOLO::STARTGAME)->second.id = -1;
 				}
 				mutex.unlock();
 				break;
@@ -777,7 +777,7 @@ void SendCriticPack()
 
 	//////// --------------- INICIALIZAR EL RELOJ QUE COMPRUEBA EL MATCHMAKING  --------------- ////////
 	startTime = clock();
-
+	int tonteriaCritic = 0;
 	while (true)
 	{
 		endTime = clock();
@@ -785,7 +785,8 @@ void SendCriticPack()
 		timeInSeconds = clockTicksTaken / (double)CLOCKS_PER_SEC;
 		if (!playersConnecteds.empty())
 		{
-			if (! (playersConnecteds[iterador].Critic_Message.empty()))
+			tonteriaCritic = playersConnecteds[iterador].Critic_Message.size();
+			if (tonteriaCritic > 0)
 			{
 
 				if (aux < playersConnecteds[iterador].Critic_Message.count(PROTOCOLO::ROOMCHANGE))
@@ -813,9 +814,14 @@ void SendCriticPack()
 						startTime = clock();
 						std::cout << "ENVIANDO EL CRITICO DE START GAME. \n";
 						mutex.lock();
-						if(playersConnecteds[iterador].Critic_Message.count(PROTOCOLO::STARTGAME)>0)
+						if(playersConnecteds[iterador].Critic_Message.find(PROTOCOLO::STARTGAME)->second.id != -1)
 						{
 							socket.send(playersConnecteds[iterador].Critic_Message.find(PROTOCOLO::STARTGAME)->second.pack, playersConnecteds[iterador].IP_Adress, playersConnecteds[iterador].port);
+						}
+						else
+						{
+							std::cout << "Borrando el StartGame del id: " << (getId(playersConnecteds[iterador].IP_Adress, playersConnecteds[iterador].port) + 1) << std::endl;
+							playersConnecteds[iterador].Critic_Message.erase(PROTOCOLO::STARTGAME);
 						}
 						mutex.unlock();
 					}
@@ -983,7 +989,14 @@ void ClientReceive()
 				//Hacemos send de vuelta para que pare de enviar el critico.
 				packRecieve.clear();
 				packRecieve << PROTOCOLO::STARTGAMEACCEPTED;
-				socket.send(packRecieve, proxy.IP_Adress, proxy.port);
+				if (socket.send(packRecieve, proxy.IP_Adress, proxy.port) == sf::Socket::Done)
+				{
+					//currentScene->CloseWindow();
+					std::cout << "Empieza partida " << std::endl;
+					currentScene->finishSending = true;
+					sceneState = TypeScene::GOTO_PLAY;
+				}
+				
 				//Ponerme a mi
 				break;
 			default:
@@ -1081,7 +1094,7 @@ void clienteMain()
 			break;
 
 		case MAPS:
-			sceneState = currentScene->DrawScene();
+			currentScene->DrawScene();
 			break;
 
 		case PLAY:
