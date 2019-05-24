@@ -209,16 +209,16 @@ void ServerReceive()
 	BaseDatos->InitBaseDatos();
 
 	map1 = BaseDatos->getMap1();
-	//map2 = BaseDatos->getMap2();
-	//map3 = BaseDatos->getMap3();
+	map2 = BaseDatos->getMap2();
+	map3 = BaseDatos->getMap3();
 
 	//// --------------------- BINARY TREES -------------------- ////
 	BinaryTree BST;
 
 	//// -------------------- MONSTERS SALA -------------------- ////
 	map1.enemiesMap = BaseDatos->getMonsterMap1();
-	//map2.enemiesMap = BaseDatos->getMonsterMap2();
-	//map3.enemiesMap = BaseDatos->getMonsterMap3();
+	map2.enemiesMap = BaseDatos->getMonsterMap2();
+	map3.enemiesMap = BaseDatos->getMonsterMap3();
 
 	/*for (int i = 0; i < map1.enemiesMap.size(); i++)
 	{
@@ -312,9 +312,10 @@ void ServerReceive()
 				{
 				case 1:
 				{
-					if (!IsInTheList(getId(adress, port)))
+					if (!IsInTheList(playersConnecteds[getId(adress, port)].id))
 					{
-						playersWaitingMap1.push_back({ getId(adress, port) ,1,playersConnecteds[getId(adress, port)].NumEnemigos });
+						playersWaitingMap1.push_back({ getId(adress, port)+1 ,1,playersConnecteds[getId(adress, port)].NumEnemigos });
+						std::cout << "Quieren entrar!                     fewefew" << std::endl;
 					}					
 					break;
 				}
@@ -322,7 +323,7 @@ void ServerReceive()
 				{
 					if (!IsInTheList(getId(adress, port)))
 					{
-						playersWaitingMap2.push_back({ getId(adress, port) ,2,playersConnecteds[getId(adress, port)].NumEnemigos });
+						playersWaitingMap2.push_back({ getId(adress, port) +1 ,2,playersConnecteds[getId(adress, port)].NumEnemigos });
 					}
 
 					break;
@@ -331,7 +332,7 @@ void ServerReceive()
 				{
 					if (!IsInTheList(getId(adress, port)))
 					{
-						playersWaitingMap3.push_back({ getId(adress, port) ,3,playersConnecteds[getId(adress, port)].NumEnemigos });
+						playersWaitingMap3.push_back({ getId(adress, port) + 1 ,3,playersConnecteds[getId(adress, port)].NumEnemigos });
 					}
 
 					break;
@@ -481,12 +482,7 @@ void SendRegularPack()
 							SQLpassword = password.c_str();
 							SQLSkin = std::atoi(skin.c_str());
 
-							//COGEMOS MONSTRUOS MATADOS DEL USUARIO
-							KilledMonsters = BaseDatos->getMonstersKilledPlayer(SQLusername, SQLpassword);
-							playersConnecteds[iterador].id_cuenta = BaseDatos->getIdCuenta(SQLusername, SQLpassword);
-							std::cout << "Enemigos matados: " << KilledMonsters << std::endl;
-							playersConnecteds[iterador].NumEnemigos = KilledMonsters;
-
+							
 							//COMPROVACION
 							std::cout << "Register with User:		" << username << std::endl;
 							std::cout << "Register with Password:	" << password << std::endl;
@@ -514,6 +510,13 @@ void SendRegularPack()
 									}
 								}
 							}
+
+							//COGEMOS MONSTRUOS MATADOS DEL USUARIO
+							KilledMonsters = BaseDatos->getMonstersKilledPlayer(SQLusername, SQLpassword);
+							playersConnecteds[iterador].id_cuenta = BaseDatos->getIdCuenta(SQLusername, SQLpassword);
+							std::cout << "Enemigos matados: " << KilledMonsters << std::endl;
+							playersConnecteds[iterador].NumEnemigos = KilledMonsters;
+
 						}
 
 
@@ -629,11 +632,11 @@ void SendRegularPack()
 			}
 		}
 
-		/*endTime = clock();
+		endTime = clock();
 		clockTicksTaken = endTime - startTime;
-		timeInSeconds = clockTicksTaken / (double)CLOCKS_PER_SEC;*/
+		timeInSeconds = clockTicksTaken / (double)CLOCKS_PER_SEC;
 
-		/*if (timeInSeconds >= 5)
+		if (timeInSeconds >= 5)
 		{
 			startTime = clock();
 			int playerForMap1 = 0;
@@ -644,12 +647,13 @@ void SendRegularPack()
 
 			/////////// -------------- HACER EL MATCHMAKING MAPA1-------------- //////////////
 			
-				if (playersWaitingMap1.size() >= 4)
+				if (playersWaitingMap1.size() >= 2)
 				{
+					std::cout << "EMPIEZA LA PARTIDA" << std::endl;
 					gamesProxy.push_back({games,1,auxPlayers,auxEnemy});
 					games++;
 					//rellenar Players
-					for (int i=0;i<4;i++)
+					for (int i=0;i<2;i++)
 					{
 						//rellenar Players
 						for (int j = 0; j < playersConnecteds.size();j++)
@@ -672,19 +676,20 @@ void SendRegularPack()
 					auxPacket << PROTOCOLO::STARTGAME;
 					auxPacket << playersConnecteds[idPlayers[0]].id << 200 << 150;
 					auxPacket << playersConnecteds[idPlayers[1]].id << 700 << 150;
-					auxPacket << playersConnecteds[idPlayers[2]].id << 100 << 400;
-					auxPacket << playersConnecteds[idPlayers[3]].id << 700 << 400;
+					//auxPacket << playersConnecteds[idPlayers[2]].id << 100 << 400;
+					//auxPacket << playersConnecteds[idPlayers[3]].id << 700 << 400;
 
-					for (int i = 0; i < 4; i++)
+					for (int i = 0; i < 2; i++)
 					{
 						
 						playersConnecteds[i].Critic_Message.insert({ PROTOCOLO::STARTGAME,Mensaje(0,auxPacket) });
 					}
 					
 				}
-				else if (playersWaitingMap1.size() >= 4)
+				else if (playersWaitingMap2.size() >= 2)
 				{
 					//crear partida y push
+					std::cout << "EMPIEZA LA PARTIDA" << std::endl;
 					gamesProxy.push_back({ games,2,auxPlayers,auxEnemy });
 					games++;
 						//rellenar Players
@@ -698,9 +703,10 @@ void SendRegularPack()
 						//gamesProxy.back().EnemiesGame.pushback(map1.enemiesMap[i]);
 					}
 				}
-				else if (playersWaitingMap1.size() >= 4)
+				else if (playersWaitingMap3.size() >= 4)
 				{
 					//crear partida y push
+					std::cout << "EMPIEZA LA PARTIDA" << std::endl;
 					gamesProxy.push_back({ games,3,auxPlayers,auxEnemy });
 					games++;
 						//rellenar Players
@@ -724,7 +730,7 @@ void SendRegularPack()
 			//
 			//
 			//////////////////////////////////////////////////////////////////////////////////
-		}*/
+		}
 
 	}
 
