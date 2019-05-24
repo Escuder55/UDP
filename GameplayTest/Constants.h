@@ -1,3 +1,4 @@
+#include <vector>
 #pragma once
 
 #define SCREEN_WIDTH 960
@@ -102,18 +103,19 @@ struct Sala
 	int puertas[4];
 	int numEnemigos=0;
 };
-struct MapaGame
-{
-	int id_map;
-	Sala salas[4];
-};
-
 struct Enemy
 {
 	int ID;
 	float posX;
 	float posY;
 	int ID_Sala;
+};
+
+struct MapaGame
+{
+	int id_map;
+	Sala salas[4];
+	std::vector<Enemy> enemiesMap;
 };
 
 

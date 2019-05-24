@@ -110,7 +110,7 @@ struct gameProxy
 	int idMAp;
 	std::vector<PlayerProxy> players;
 	std::vector<Enemy> EnemiesGame;
-	bool  started = false;
+
 };
 struct waitingPlayer
 {
@@ -123,6 +123,11 @@ std::vector<gameProxy> gamesProxy;
 std::vector<waitingPlayer> playersWaitingMap1;
 std::vector<waitingPlayer> playersWaitingMap2;
 std::vector<waitingPlayer> playersWaitingMap3;
+
+//aux
+std::vector<PlayerProxy> auxPlayers;
+std::vector<Enemy> auxEnemy;
+
 
 std::multimap<int, Mensaje> listOfCritics;
 
@@ -209,6 +214,17 @@ void ServerReceive()
 
 	//// --------------------- BINARY TREES -------------------- ////
 	BinaryTree BST;
+
+	//// -------------------- MONSTERS SALA -------------------- ////
+	map1.enemiesMap = BaseDatos->getMonsterMap1();
+	map2.enemiesMap = BaseDatos->getMonsterMap2();
+	map3.enemiesMap = BaseDatos->getMonsterMap3();
+
+	/*for (int i = 0; i < map1.enemiesMap.size(); i++)
+	{
+		std::cout << "Enemigos: " << map1.enemiesMap[i].ID << " " << map1.enemiesMap[i].ID_Sala << " " << map1.enemiesMap[i].posX << " " << map1.enemiesMap[i].posY << std::endl;
+	}*/
+
 	
 	int auxSala;
 
@@ -609,36 +625,58 @@ void SendRegularPack()
 			int playerForMap1 = 0;
 			int playerForMap2 = 0;
 			int playerForMap3 = 0;
-
+			//Ordenamos maps wantplay de cada mapa
 
 			/////////// -------------- HACER EL MATCHMAKING MAPA1-------------- //////////////
-			for (int i = 0; i < playersWaitingMap1.size(); i++)
-			{
-				if (playersWaitingMap1[i].map == 1)
+			
+				if (playersWaitingMap1.size() >= 4)
 				{
-					playerForMap1++;
+					gamesProxy.push_back({games,1,auxPlayers,auxEnemy});
+					games++;
+					//rellenar Players
+					for (int i=0;i<4;i++)
+					{
+						//rellenar Players
+												
+					}
+					for (int i=0;i<map1.enemiesMap.size();i++)
+					{
+						//gamesProxy.back().EnemiesGame.pushback(map1.enemiesMap[i]);
+					}
 				}
-				else if (playersWaitingMap1[i].map == 2)
+				else if (playersWaitingMap1.size() >= 4)
 				{
-					playerForMap2++;
+					//crear partida y push
+					gamesProxy.push_back({ games,2,auxPlayers,auxEnemy });
+					games++;
+						//rellenar Players
+					for (int i = 0; i < 4; i++)
+					{
+						//rellenar Players
+
+					}
+					for (int i = 0; i < map1.enemiesMap.size(); i++)
+					{
+						//gamesProxy.back().EnemiesGame.pushback(map1.enemiesMap[i]);
+					}
 				}
-				else if (playersWaitingMap1[i].map == 3)
+				else if (playersWaitingMap1.size() >= 4)
 				{
-					playerForMap3++;
+					//crear partida y push
+					gamesProxy.push_back({ games,3,auxPlayers,auxEnemy });
+					games++;
+						//rellenar Players
+					for (int i = 0; i < 4; i++)
+					{
+					
+
+					}
+					for (int i = 0; i < map1.enemiesMap.size(); i++)
+					{
+						//gamesProxy.back().EnemiesGame.pushback(map1.enemiesMap[i]);
+					}
 				}
-			}
-			if (playerForMap1 >= 4)
-			{
-
-			}
-			else if (playerForMap1 >= 4)
-			{
-
-			}
-			else if (playerForMap1 >= 4)
-			{
-
-			}
+			
 			/////////// -------------- HACER EL MATCHMAKING MAPA2-------------- //////////////
 			//
 			//
@@ -781,6 +819,10 @@ void ClientReceive()
 					sceneState = TypeScene::GOTO_SIGN_UP;
 				}
 
+				break;
+			case PROTOCOLO::WANTPLAYACCEPTED:
+				currentScene->finishSending = true;
+				
 				break;
 			default:
 				break;

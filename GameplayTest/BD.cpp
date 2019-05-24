@@ -194,10 +194,10 @@ MapaGame BD::getMap2()
 
 	//SETEAMOS IDS
 	map1.id_map = 1;
-	sala1.id_sala = 5;
-	sala2.id_sala = 6;
-	sala3.id_sala = 7;
-	sala4.id_sala = 8;
+	sala1.id_sala = 1;
+	sala2.id_sala = 2;
+	sala3.id_sala = 3;
+	sala4.id_sala = 4;
 
 	//PUERTAS SALA1
 	prep_stmt = conn->prepareStatement("SELECT puerta1, puerta2, puerta3, puerta4 FROM sala WHERE id_sala = ?");
@@ -211,6 +211,11 @@ MapaGame BD::getMap2()
 		sala1.puertas[2] = res->getInt("puerta3");
 		sala1.puertas[3] = res->getInt("puerta4");
 	}
+
+	sala1.puertas[0] -= 4;
+	sala1.puertas[1] -= 4;
+	sala1.puertas[2] -= 4;
+	sala1.puertas[3] -= 4;
 
 	//std::cout << "Sala1 puertas: " << sala1.puertas[0] << " " << sala1.puertas[1] << " " << sala1.puertas[2] << " " << sala1.puertas[3] << std::endl;
 
@@ -227,6 +232,11 @@ MapaGame BD::getMap2()
 		sala2.puertas[3] = res->getInt("puerta4");
 	}
 
+	sala2.puertas[0] -= 4;
+	sala2.puertas[1] -= 4;
+	sala2.puertas[2] -= 4;
+	sala2.puertas[3] -= 4;
+
 	//std::cout << "Sala2 puertas: " << sala2.puertas[0] << " " << sala2.puertas[1] << " " << sala2.puertas[2] << " " << sala2.puertas[3] << std::endl;
 
 	//PUERTAS SALA3
@@ -242,6 +252,11 @@ MapaGame BD::getMap2()
 		sala3.puertas[3] = res->getInt("puerta4");
 	}
 
+	sala3.puertas[0] -= 4;
+	sala3.puertas[1] -= 4;
+	sala3.puertas[2] -= 4;
+	sala3.puertas[3] -= 4;
+
 	//std::cout << "Sala3 puertas: " << sala3.puertas[0] << " " << sala3.puertas[1] << " " << sala3.puertas[2] << " " << sala3.puertas[3] << std::endl;
 
 	//PUERTAS SALA4
@@ -256,6 +271,11 @@ MapaGame BD::getMap2()
 		sala4.puertas[2] = res->getInt("puerta3");
 		sala4.puertas[3] = res->getInt("puerta4");
 	}
+
+	sala4.puertas[0] -= 4;
+	sala4.puertas[1] -= 4;
+	sala4.puertas[2] -= 4;
+	sala4.puertas[3] -= 4;
 
 	//std::cout << "Sala4 puertas: " << sala4.puertas[0] << " " << sala4.puertas[1] << " " << sala4.puertas[2] << " " << sala4.puertas[3] << std::endl;
 
@@ -278,10 +298,10 @@ MapaGame BD::getMap3()
 
 	//SETEAMOS IDS
 	map1.id_map = 1;
-	sala1.id_sala = 9;
-	sala2.id_sala = 10;
-	sala3.id_sala = 11;
-	sala4.id_sala = 12;
+	sala1.id_sala = 1;
+	sala2.id_sala = 2;
+	sala3.id_sala = 3;
+	sala4.id_sala = 4;
 
 	//PUERTAS SALA1
 	prep_stmt = conn->prepareStatement("SELECT puerta1, puerta2, puerta3, puerta4 FROM sala WHERE id_sala = ?");
@@ -295,6 +315,11 @@ MapaGame BD::getMap3()
 		sala1.puertas[2] = res->getInt("puerta3");
 		sala1.puertas[3] = res->getInt("puerta4");
 	}
+
+	sala1.puertas[0] -= 8;
+	sala1.puertas[1] -= 8;
+	sala1.puertas[2] -= 8;
+	sala1.puertas[3] -= 8;
 
 	//std::cout << "Sala1 puertas: " << sala1.puertas[0] << " " << sala1.puertas[1] << " " << sala1.puertas[2] << " " << sala1.puertas[3] << std::endl;
 
@@ -311,6 +336,11 @@ MapaGame BD::getMap3()
 		sala2.puertas[3] = res->getInt("puerta4");
 	}
 
+	sala2.puertas[0] -= 8;
+	sala2.puertas[1] -= 8;
+	sala2.puertas[2] -= 8;
+	sala2.puertas[3] -= 8;
+
 	//std::cout << "Sala2 puertas: " << sala2.puertas[0] << " " << sala2.puertas[1] << " " << sala2.puertas[2] << " " << sala2.puertas[3] << std::endl;
 
 	//PUERTAS SALA3
@@ -325,6 +355,11 @@ MapaGame BD::getMap3()
 		sala3.puertas[2] = res->getInt("puerta3");
 		sala3.puertas[3] = res->getInt("puerta4");
 	}
+
+	sala3.puertas[0] -= 8;
+	sala3.puertas[1] -= 8;
+	sala3.puertas[2] -= 8;
+	sala3.puertas[3] -= 8;
 
 	//std::cout << "Sala3 puertas: " << sala3.puertas[0] << " " << sala3.puertas[1] << " " << sala3.puertas[2] << " " << sala3.puertas[3] << std::endl;
 
@@ -341,6 +376,11 @@ MapaGame BD::getMap3()
 		sala4.puertas[3] = res->getInt("puerta4");
 	}
 
+	sala4.puertas[0] -= 8;
+	sala4.puertas[1] -= 8;
+	sala4.puertas[2] -= 8;
+	sala4.puertas[3] -= 8;
+
 	//std::cout << "Sala4 puertas: " << sala4.puertas[0] << " " << sala4.puertas[1] << " " << sala4.puertas[2] << " " << sala4.puertas[3] << std::endl;
 
 	//SETEAMOS MAP
@@ -350,6 +390,231 @@ MapaGame BD::getMap3()
 	map1.salas[3] = sala4;
 
 	return map1;
+}
+
+std::vector<Enemy> BD::getMonsterMap1()
+{
+	//VECTOR DE ENEMIGOS
+	std::vector<Enemy> vecEnemies;
+
+	//ENEMIGOS SALA 1
+	prep_stmt = conn->prepareStatement("SELECT id_monstruo, posicion_X, posicion_Y FROM monstruo WHERE sala = ?");
+	prep_stmt->setInt(1, 1);
+	res = prep_stmt->executeQuery();
+
+	//ENEMIGO AUXILIAR
+	Enemy auxEnemy;
+
+	while (res->next())
+	{
+		auxEnemy.ID = res->getInt("id_monstruo");
+		auxEnemy.ID_Sala = 1;
+		auxEnemy.posX = res->getInt("posicion_X");
+		auxEnemy.posY = res->getInt("posicion_Y");
+
+		//PUSHEAMOS AL VECTOR
+		vecEnemies.push_back(auxEnemy);
+	}
+
+	//ENEMIGOS SALA 2
+	prep_stmt = conn->prepareStatement("SELECT id_monstruo, posicion_X, posicion_Y FROM monstruo WHERE sala = ?");
+	prep_stmt->setInt(1, 2);
+	res = prep_stmt->executeQuery();
+
+	while (res->next())
+	{
+		auxEnemy.ID = res->getInt("id_monstruo");
+		auxEnemy.ID_Sala = 2;
+		auxEnemy.posX = res->getInt("posicion_X");
+		auxEnemy.posY = res->getInt("posicion_Y");
+
+		//PUSHEAMOS AL VECTOR
+		vecEnemies.push_back(auxEnemy);
+	}
+
+	//ENEMIGOS SALA 3
+	prep_stmt = conn->prepareStatement("SELECT id_monstruo, posicion_X, posicion_Y FROM monstruo WHERE sala = ?");
+	prep_stmt->setInt(1, 3);
+	res = prep_stmt->executeQuery();
+
+	while (res->next())
+	{
+		auxEnemy.ID = res->getInt("id_monstruo");
+		auxEnemy.ID_Sala = 3;
+		auxEnemy.posX = res->getInt("posicion_X");
+		auxEnemy.posY = res->getInt("posicion_Y");
+
+		//PUSHEAMOS AL VECTOR
+		vecEnemies.push_back(auxEnemy);
+	}
+
+	//ENEMIGOS SALA 4
+	prep_stmt = conn->prepareStatement("SELECT id_monstruo, posicion_X, posicion_Y FROM monstruo WHERE sala = ?");
+	prep_stmt->setInt(1, 4);
+	res = prep_stmt->executeQuery();
+
+	while (res->next())
+	{
+		auxEnemy.ID = res->getInt("id_monstruo");
+		auxEnemy.ID_Sala = 4;
+		auxEnemy.posX = res->getInt("posicion_X");
+		auxEnemy.posY = res->getInt("posicion_Y");
+
+		//PUSHEAMOS AL VECTOR
+		vecEnemies.push_back(auxEnemy);
+	}
+
+	return vecEnemies;
+}
+
+std::vector<Enemy> BD::getMonsterMap2()
+{
+	//VECTOR DE ENEMIGOS
+	std::vector<Enemy> vecEnemies;
+
+	//ENEMIGOS SALA 1
+	prep_stmt = conn->prepareStatement("SELECT id_monstruo, posicion_X, posicion_Y FROM monstruo WHERE sala = ?");
+	prep_stmt->setInt(1, 5);
+	res = prep_stmt->executeQuery();
+
+	//ENEMIGO AUXILIAR
+	Enemy auxEnemy;
+
+	while (res->next())
+	{
+		auxEnemy.ID = res->getInt("id_monstruo");
+		auxEnemy.ID_Sala = 1;
+		auxEnemy.posX = res->getInt("posicion_X");
+		auxEnemy.posY = res->getInt("posicion_Y");
+
+		//PUSHEAMOS AL VECTOR
+		vecEnemies.push_back(auxEnemy);
+	}
+
+	//ENEMIGOS SALA 2
+	prep_stmt = conn->prepareStatement("SELECT id_monstruo, posicion_X, posicion_Y FROM monstruo WHERE sala = ?");
+	prep_stmt->setInt(1, 6);
+	res = prep_stmt->executeQuery();
+
+	while (res->next())
+	{
+		auxEnemy.ID = res->getInt("id_monstruo");
+		auxEnemy.ID_Sala = 2;
+		auxEnemy.posX = res->getInt("posicion_X");
+		auxEnemy.posY = res->getInt("posicion_Y");
+
+		//PUSHEAMOS AL VECTOR
+		vecEnemies.push_back(auxEnemy);
+	}
+
+	//ENEMIGOS SALA 3
+	prep_stmt = conn->prepareStatement("SELECT id_monstruo, posicion_X, posicion_Y FROM monstruo WHERE sala = ?");
+	prep_stmt->setInt(1, 7);
+	res = prep_stmt->executeQuery();
+
+	while (res->next())
+	{
+		auxEnemy.ID = res->getInt("id_monstruo");
+		auxEnemy.ID_Sala = 3;
+		auxEnemy.posX = res->getInt("posicion_X");
+		auxEnemy.posY = res->getInt("posicion_Y");
+
+		//PUSHEAMOS AL VECTOR
+		vecEnemies.push_back(auxEnemy);
+	}
+
+	//ENEMIGOS SALA 4
+	prep_stmt = conn->prepareStatement("SELECT id_monstruo, posicion_X, posicion_Y FROM monstruo WHERE sala = ?");
+	prep_stmt->setInt(1, 8);
+	res = prep_stmt->executeQuery();
+
+	while (res->next())
+	{
+		auxEnemy.ID = res->getInt("id_monstruo");
+		auxEnemy.ID_Sala = 4;
+		auxEnemy.posX = res->getInt("posicion_X");
+		auxEnemy.posY = res->getInt("posicion_Y");
+
+		//PUSHEAMOS AL VECTOR
+		vecEnemies.push_back(auxEnemy);
+	}
+
+	return vecEnemies;
+}
+
+std::vector<Enemy> BD::getMonsterMap3()
+{
+	//VECTOR DE ENEMIGOS
+	std::vector<Enemy> vecEnemies;
+
+	//ENEMIGOS SALA 1
+	prep_stmt = conn->prepareStatement("SELECT id_monstruo, posicion_X, posicion_Y FROM monstruo WHERE sala = ?");
+	prep_stmt->setInt(1, 9);
+	res = prep_stmt->executeQuery();
+
+	//ENEMIGO AUXILIAR
+	Enemy auxEnemy;
+
+	while (res->next())
+	{
+		auxEnemy.ID = res->getInt("id_monstruo");
+		auxEnemy.ID_Sala = 1;
+		auxEnemy.posX = res->getInt("posicion_X");
+		auxEnemy.posY = res->getInt("posicion_Y");
+
+		//PUSHEAMOS AL VECTOR
+		vecEnemies.push_back(auxEnemy);
+	}
+
+	//ENEMIGOS SALA 2
+	prep_stmt = conn->prepareStatement("SELECT id_monstruo, posicion_X, posicion_Y FROM monstruo WHERE sala = ?");
+	prep_stmt->setInt(1, 10);
+	res = prep_stmt->executeQuery();
+
+	while (res->next())
+	{
+		auxEnemy.ID = res->getInt("id_monstruo");
+		auxEnemy.ID_Sala = 2;
+		auxEnemy.posX = res->getInt("posicion_X");
+		auxEnemy.posY = res->getInt("posicion_Y");
+
+		//PUSHEAMOS AL VECTOR
+		vecEnemies.push_back(auxEnemy);
+	}
+
+	//ENEMIGOS SALA 3
+	prep_stmt = conn->prepareStatement("SELECT id_monstruo, posicion_X, posicion_Y FROM monstruo WHERE sala = ?");
+	prep_stmt->setInt(1, 11);
+	res = prep_stmt->executeQuery();
+
+	while (res->next())
+	{
+		auxEnemy.ID = res->getInt("id_monstruo");
+		auxEnemy.ID_Sala = 3;
+		auxEnemy.posX = res->getInt("posicion_X");
+		auxEnemy.posY = res->getInt("posicion_Y");
+
+		//PUSHEAMOS AL VECTOR
+		vecEnemies.push_back(auxEnemy);
+	}
+
+	//ENEMIGOS SALA 4
+	prep_stmt = conn->prepareStatement("SELECT id_monstruo, posicion_X, posicion_Y FROM monstruo WHERE sala = ?");
+	prep_stmt->setInt(1, 12);
+	res = prep_stmt->executeQuery();
+
+	while (res->next())
+	{
+		auxEnemy.ID = res->getInt("id_monstruo");
+		auxEnemy.ID_Sala = 4;
+		auxEnemy.posX = res->getInt("posicion_X");
+		auxEnemy.posY = res->getInt("posicion_Y");
+
+		//PUSHEAMOS AL VECTOR
+		vecEnemies.push_back(auxEnemy);
+	}
+
+	return vecEnemies;
 }
 
 int BD::getMonstersKilledPlayer(sql::SQLString PUsername, sql::SQLString PPassword)

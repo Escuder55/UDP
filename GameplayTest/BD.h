@@ -35,11 +35,16 @@ public:
 	int getMonstersKilledPlayer(sql::SQLString PUsername, sql::SQLString PPassword);
 	int getIdCuenta(sql::SQLString PUsername, sql::SQLString PPassword);
 
-
 	//MAPA
 	MapaGame getMap1();
 	MapaGame getMap2();
 	MapaGame getMap3();
+
+	//MONSTERS
+	std::vector<Enemy> getMonsterMap1();
+	std::vector<Enemy> getMonsterMap2();
+	std::vector<Enemy> getMonsterMap3();
+
 
 	//DESTRUCTOR
 	~BD();
