@@ -895,6 +895,7 @@ void serverMain()
 	}
 }
 
+float posX, posY;
 //THREAD RECEIVE CLIENT
 void ClientReceive()
 {
@@ -985,6 +986,8 @@ void ClientReceive()
 					packRecieve >> teamMateAux.posY;
 					myGame.players.push_back(teamMateAux);
 					std::cout << "id :" << teamMateAux.id << " " << teamMateAux.posX << " " << teamMateAux.posY << std::endl;
+					posX = teamMateAux.posX;
+					posY = teamMateAux.posY;
 				}
 				//Hacemos send de vuelta para que pare de enviar el critico.
 				packRecieve.clear();
@@ -1140,7 +1143,7 @@ void clienteMain()
 			std::cout << "Nos vamos a la escena del Juego" << std::endl;
 			sceneState = TypeScene::PLAY;
 			auxType = static_cast<CharacterType>(proxy.skin);
-			currentScene = new Game(auxType);
+			currentScene = new Game(auxType,posX,posY);
 			currentScene->me = proxy;
 			break;
 		default:

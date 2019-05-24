@@ -7,11 +7,14 @@ Game::Game()
 	
 }
 
-Game::Game(CharacterType myCharacterType)
+Game::Game(CharacterType myCharacterType, float _posX, float _posY)
 {
 	/////////////////////////////////////////////inicializaciones temporales,para probar cosas
 	doorsOpen = false;
 	currentBackground = 0;
+
+	posPartnerX = _posX;
+	posPartnerY = _posY;
 
 	/////////////////////////////////////////////inicializamos el Character con el typo que le hayamos pasado,
 	/////////////////////////////////////////////en un futuro esta inicialización tendrá que ser con la skin que 
@@ -31,6 +34,15 @@ Game::~Game()
 void Game::InitSprites()
 {
 	////////////////////////////////////////////////////////////////////////BACKGROUNDS
+
+	if (!partnerTexture.loadFromFile("res/img/Partner.png"))
+	{
+		std::cout << "Cannot Load the image" << std::endl;
+	}
+	partner.setTexture(partnerTexture);
+	partner.setPosition(posPartnerX, posPartnerY);
+	//partner.setScale(sf::Vector2f(0.5, 0.5));
+
 
 		///////////////////BACKGROUND 1
 	if (!bgTexture[0].loadFromFile("res/img/Backgorund1.png"))
@@ -187,4 +199,10 @@ void Game::DrawSprites()
 			window.draw(doors[i]);
 		}
 	}
+	window.draw(partner);
+}
+
+void Game::UpdatePartnerPosition(float _posX, float _posY)
+{
+	partner.setPosition(_posX,_posY);
 }

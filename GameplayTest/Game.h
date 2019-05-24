@@ -7,7 +7,7 @@ class Game :
 {
 public:
 	Game();
-	Game(CharacterType myCharacterType);
+	Game(CharacterType myCharacterType, float _posX, float _posY);
 	~Game();
 	void InitSprites();
 	TypeScene DrawScene();
@@ -21,6 +21,7 @@ public:
 		animationCounterY = 0,
 		timeCounter = 0;
 	sf::IntRect myRect;
+	void UpdatePartnerPosition(float _posX, float _posY);
 
 
 
@@ -29,8 +30,11 @@ private:
 	sf::Texture  doorTexture[4];
 	sf::Sprite background[3];
 	sf::Sprite doors[4];
-	sf::Texture characterTexture;
-	sf::Sprite character;
+
+	float posPartnerX;
+	float posPartnerY;
+	sf::Texture partnerTexture;
+	sf::Sprite partner;
 
 	Character* myCharacter;
 
