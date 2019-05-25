@@ -411,7 +411,8 @@ void SendRegularPack()
 	//std::cout << "Port: " << port << std::endl;
 
 	sf::Packet auxPacket;
-	int auxPacketInt;
+	int packetidint;
+	float auxPacketInt;
 
 	//PROTOCOLO A DAR
 	int auxOrder;
@@ -652,7 +653,7 @@ void SendRegularPack()
 						{
 							auxPacket >> posX[i];
 							auxPacket >> posY[i];
-							//HAY QUE COMPROBAR LAS COLISIONES
+
 							OKMovement = true;
 							if (OKMovement)
 							{
@@ -661,9 +662,12 @@ void SendRegularPack()
 						}
 						if (OKMovement)
 						{
+
+							mutex.lock();
 							//ACTUALIZO LA POSICION DEL JUGADOR QUE HA ENVIADO EL MOVIMIENTO
-							playersConnecteds[iterador].posX = posX[5];
-							playersConnecteds[iterador].posY = posY[5];
+							playersConnecteds[iterador].posX = posX[4];
+							playersConnecteds[iterador].posY = posY[4];
+							mutex.unlock();
 
 							auxPacket.clear();
 							auxPacket << PROTOCOLO::MOVEMENT;
@@ -681,7 +685,6 @@ void SendRegularPack()
 											playersConnecteds[iterador].Regular_Message.erase(it);
 										}
 									}
-									//std::cout << (*it).first << " => " << (*it).second.id << '\n';
 								}
 
 								std::multimap<PROTOCOLO, Mensaje>::iterator it2 = playersConnecteds[iterador].Regular_Message.find(PROTOCOLO::MOVEMENT);
@@ -694,7 +697,6 @@ void SendRegularPack()
 								auxPacket << playersConnecteds[iterador].id;
 								auxPacket << playersConnecteds[iterador].posX;
 								auxPacket << playersConnecteds[iterador].posY;
-								//Buscamos la partida
 								for (int i = 0; i < gamesProxy.size(); i++)
 								{
 									if (gamesProxy[i].id == playersConnecteds[iterador].idPartidaActual)
@@ -720,7 +722,7 @@ void SendRegularPack()
 					}
 					case TEAMPOSITION:
 					{
-						std::cout << "----------------------------------------------" << std::endl;
+						//std::cout << "----------------------------------------------" << std::endl;
 						auxPacket = playersConnecteds[iterador].Regular_Message.find(PROTOCOLO::TEAMPOSITION)->second.pack;
 						status = socket.send(auxPacket, playersConnecteds[iterador].IP_Adress, playersConnecteds[iterador].port);
 						if (status == sf::Socket::Done)
@@ -728,12 +730,6 @@ void SendRegularPack()
 							std::cout << "Enviado movimiento de un jugador a otro" << std::endl;
 							std::multimap<PROTOCOLO, Mensaje>::iterator itToRemove = playersConnecteds[iterador].Regular_Message.find(PROTOCOLO::TEAMPOSITION);
 							playersConnecteds[iterador].Regular_Message.erase(itToRemove);
-							auxPacket >> auxPacketInt;
-							std::cout << "SERVER ENVIA ID:" << auxPacketInt << std::endl;
-							auxPacket >> auxPacketInt;
-							std::cout << "SERVER ENVIA POS X:" << auxPacketInt << std::endl;
-							auxPacket >> auxPacketInt;
-							std::cout << "SERVER ENVIA POS Y:" << auxPacketInt << std::endl;
 						}
 						else
 						{
@@ -1147,11 +1143,12 @@ void ClientReceive()
 				packRecieve >> auxint;
 				packRecieve >> posX;
 				packRecieve >> posY;
-
-				std::cout << "--------------------------------- " << std::endl;
-				std::cout << "ID recibido: " << auxint << std::endl;
-				std::cout << "La posicion del otro player en X es: " << posX << std::endl;
-				std::cout << "La posicion del otro player en Y es: " << posY << std::endl;
+				
+				//Actualizar Posicion avatrares
+				//
+				//
+				//
+				//////////////////////////////
 				break;
 			}
 			default:
