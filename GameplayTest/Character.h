@@ -25,7 +25,11 @@ public:
 	void DrawBullets(sf::RenderWindow * window);
 	void UpdateCharacterPosition(sf::Keyboard::Key _keyPressed, bool _pressed);
 	void cleanAccumMovement(int idConfirmed);
+
+	//COLLISIONS DOORS
 	bool hoverRightDoor();
+	bool hoverDownDoor();
+
 private:
 	sf::Texture cTexture;
 	sf::IntRect myRect;

@@ -280,7 +280,11 @@ void Character::UpdateCharacterPosition(sf::Keyboard::Key _keyPressed, bool _pre
 	
 	if (hoverRightDoor())
 	{
-		std::cout << "Me piro a la sala 2-----------------------" << std::endl;;
+		std::cout << "Me piro a la sala 2 -----------------------" << std::endl;;
+	}
+	if (hoverDownDoor())
+	{
+		std::cout << "Me piro a la sala 3 bro-----------------------" << std::endl;;
 	}
 
 	///////////////////////////////////////////DISPARO
@@ -343,7 +347,19 @@ bool Character::hoverRightDoor()
 {
 	if ((characterSprite.getPosition().x + characterSprite.getTextureRect().width) > DOOR_RIGHT_POS_X)
 	{		
-		if ((characterSprite.getPosition().y > DOOR_RIGHT_POS_Y))
+		if ((characterSprite.getPosition().y > (DOOR_RIGHT_POS_Y - 45)) && (characterSprite.getPosition().y < (DOOR_RIGHT_POS_Y)))
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+bool Character::hoverDownDoor()
+{
+	if ((characterSprite.getPosition().x < DOOR_DOWN_POS_X + 40) && (characterSprite.getPosition().x > DOOR_DOWN_POS_X - 35))
+	{
+		if (((characterSprite.getPosition().y + characterSprite.getTextureRect().height) > DOOR_DOWN_POS_Y))
 		{
 			return true;
 		}
