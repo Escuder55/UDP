@@ -203,7 +203,6 @@ bool IsInTheList(int id)
 	return false;
 }
 
-
 //THREAD RECEIVE SERVER
 void ServerReceive()
 {
@@ -353,14 +352,22 @@ void ServerReceive()
 				break;
 			}
 			case PROTOCOLO::STARTGAMEACCEPTED:
-				std::cout << "aqui 1" << std::endl;				
+			{	std::cout << "aqui 1" << std::endl;
 				mutex.lock();
 				if (playersConnecteds[getId(adress, port)].Critic_Message.count(PROTOCOLO::STARTGAME) > 0)
-				{
-					playersConnecteds[getId(adress, port)].Critic_Message.find(PROTOCOLO::STARTGAME)->second.id = -1;
-				}
-				mutex.unlock();
+			{
+				playersConnecteds[getId(adress, port)].Critic_Message.find(PROTOCOLO::STARTGAME)->second.id = -1;
+			}
+				mutex.unlock(); 
 				break;
+			}				
+			case PROTOCOLO::MOVEMENT:
+			{
+				pack >> currentId;
+				playersConnecteds[getId(adress, port)].Regular_Message.insert({ PROTOCOLO::MOVEMENT, Mensaje(currentId, pack)});
+				std::cout << "ID aAcumulado : " << currentId;
+				break;
+			}
 			default:
 					break;
 			}
@@ -414,7 +421,7 @@ void SendRegularPack()
 			{
 				auxProtocolo = PROTOCOLO::NONEPROTOCOLO;
 				aux = 0;
-				std::cout << " Jugador nº: " << iterador << std::endl;
+				//std::cout << " Jugador nº: " << iterador << std::endl;
 				if (aux < playersConnecteds[iterador].Regular_Message.count(PROTOCOLO::HELLO))
 				{
 					aux = playersConnecteds[iterador].Regular_Message.count(PROTOCOLO::HELLO);
@@ -450,6 +457,12 @@ void SendRegularPack()
 					aux = playersConnecteds[iterador].Regular_Message.count(PROTOCOLO::WANTPLAY);
 					auxProtocolo = PROTOCOLO::WANTPLAY;
 					std::cout << "5" << std::endl;
+				}
+				if (aux < playersConnecteds[iterador].Regular_Message.count(PROTOCOLO::MOVEMENT))
+				{
+					aux = playersConnecteds[iterador].Regular_Message.count(PROTOCOLO::MOVEMENT);
+					auxProtocolo = PROTOCOLO::MOVEMENT;
+					//std::cout << "6" << std::endl;
 				}
 
 				switch (auxProtocolo)
@@ -613,6 +626,10 @@ void SendRegularPack()
 						break;
 					}
 					case DISCONECTED:
+					{
+						break;
+					}
+					case MOVEMENT:
 					{
 						break;
 					}
@@ -1143,7 +1160,7 @@ void clienteMain()
 			std::cout << "Nos vamos a la escena del Juego" << std::endl;
 			sceneState = TypeScene::PLAY;
 			auxType = static_cast<CharacterType>(proxy.skin);
-			currentScene = new Game(auxType,posX,posY);
+			currentScene = new Game(auxType,posX,posY, &socket);
 			currentScene->me = proxy;
 			break;
 		default:

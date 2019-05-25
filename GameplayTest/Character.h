@@ -3,6 +3,14 @@
 #include <iostream>
 #include "Constants.h"
 #include "Bullet.h"
+#include <SFML/Network.hpp>
+#include "Mensaje.h"
+#include <list>
+struct movementPlayer 
+{
+	float posX;
+	float posY;
+};
 
 class Character
 {	
@@ -10,7 +18,7 @@ class Character
 public:
 	
 	Character();
-	Character(CharacterType _myCharacter);
+	Character(CharacterType _myCharacter, sf::UdpSocket *sock);
 	~Character();
 	void InitSprites();
 	void DrawCharacter(sf::RenderWindow * window);
@@ -22,8 +30,31 @@ private:
 	sf::IntRect myRect;
 	sf::Sprite characterSprite;
 	sf::Vector2f spritePosition;
-
 	sf::Vector2f characterPosition;
+	std::list<Mensaje> accumMove;
+	
+	//Para acumulados
+	int lastPosX;
+	int lastPosY;
+	int newPosX;
+	int newPosY;
+	int idAccum;
+	Mensaje auxMensaje;
+	std::vector<movementPlayer> accumMovementForPacket;
+
+	//TIMER
+	clock_t startTime;
+	clock_t startTime2;
+	clock_t endTime;
+	clock_t clockTicksTaken;
+	double timeInSeconds;
+	double timeInSeconds2;
+
+	//Network Variable
+	sf::UdpSocket *socket;
+	sf::Packet movementPacket;
+	sf::Packet ShotPacket;
+	
 
 	int animationCounterX = 0,
 		animationCounterY = 3,

@@ -6,8 +6,17 @@ Character::Character()
 {
 }
 
-Character::Character(CharacterType _myCharacter)
+Character::Character(CharacterType _myCharacter, sf::UdpSocket *sock)
 {
+	//Nos guardamos el socket
+	socket = sock;
+	//
+	idAccum = 0;
+	startTime = clock();
+	startTime2 = clock();
+	// para acumulados
+	accumMovementForPacket.push_back({characterPosition.x, characterPosition.y});
+
 	moving = Direcciones::NONE;
 	shooting = Direcciones::NONE;
 	///////////////////////////////////////////////////EN FUNCIÓN DEL CHARACTER ESCOGIDO INICIALIZAREMOS
@@ -80,8 +89,14 @@ void Character::InitSprites()
 
 void Character::DrawCharacter(sf::RenderWindow * window)
 {
-	timeCounter++;
+	endTime = clock();
+	clockTicksTaken = endTime - startTime;
+	timeInSeconds = clockTicksTaken / (double)CLOCKS_PER_SEC;
+	clockTicksTaken = endTime - startTime2;
+	timeInSeconds2 = clockTicksTaken / (double)CLOCKS_PER_SEC;;
 
+	timeCounter++;
+	
 	if (timeCounter > 350)
 	{
 		timeCounter = 0;
@@ -100,6 +115,44 @@ void Character::DrawCharacter(sf::RenderWindow * window)
 		characterSprite.setTextureRect(myRect);
 	}
 
+	//Envio Acumulados////////////////////////////////////////////////
+	if (timeInSeconds2 > 0.1)
+	{
+		startTime2 = clock();
+		accumMovementForPacket.push_back({ characterPosition.x, characterPosition.y });
+		std::cout << "Rellenamos una posicion" << std::endl;
+	}
+	//Guardamos el envio del packeteAcumulado.
+	if (timeInSeconds > 0.5)
+	{
+		startTime = clock(); 
+		movementPacket.clear();
+		movementPacket << PROTOCOLO::MOVEMENT;
+		auxMensaje.protocolo = PROTOCOLO::MOVEMENT;
+		movementPacket << idAccum;
+		auxMensaje.id = idAccum;
+		idAccum++;
+		//rellenamos el packet para enviarlo con los movimientos acumulados
+		for (int i = 0; i < accumMovementForPacket.size(); i++)
+		{
+			movementPacket << accumMovementForPacket[i].posX;
+			movementPacket << accumMovementForPacket[i].posY;
+		}
+		//Rellenamos lista acumulados
+		auxMensaje.pack = movementPacket;
+		accumMove.push_back(auxMensaje);
+
+		sf::Socket::Status status = socket->send(movementPacket,IP_CLASE,PORT);
+		if (status != sf::Socket::Done)
+		{
+			std::cout << "No se ha podido enviar el mensaje de movimiento" << std::endl;
+		}
+		else
+		{
+			std::cout << "Se ha enviado el mensaje de movimiento" << std::endl;
+		}
+	}
+	//////////////////////////////////////////////////////////////////
 	DrawBullets(window);
 	window->draw(characterSprite);
 
@@ -118,11 +171,13 @@ void Character::DrawBullets(sf::RenderWindow * window)
 
 }
 
-
 void Character::UpdateCharacterPosition(sf::Keyboard::Key _keyPressed, bool _pressed)
 {
+	bool enviarMove = false;
+	bool enviarDisparo = false;
 	moving = NONE;
 	shooting = NONE;
+
 	//////////////////////////////////////MOVIMIENTO
 	if (_pressed)
 	{
@@ -182,40 +237,44 @@ void Character::UpdateCharacterPosition(sf::Keyboard::Key _keyPressed, bool _pre
 			shooting = Direcciones::NONE;
 		}
 	}
-
 	//////////////////////////////comprobamos el movimiento
 	switch (moving)
 	{
 	case NONE:
+		
 		break;
-
 	case UP:
 			animationCounterY = 3;
 			characterPosition.y -= speed;
 			characterSprite.setPosition(characterPosition);
+			enviarMove = true;
 		break;
 
 	case RIGHT:
 			animationCounterY = 2;
 			characterPosition.x += speed;
 			characterSprite.setPosition(characterPosition);
+			enviarMove = true;
 		break;
 
 	case DOWN:
 			animationCounterY = 0;
 			characterPosition.y += speed;
 			characterSprite.setPosition(characterPosition);
+			enviarMove = true;
 		break;
 
 	case LEFT:
 			animationCounterY = 1;
 			characterPosition.x -= speed;
 			characterSprite.setPosition(characterPosition);
+			enviarMove = true;
 		break;
 
 	default:
 		break;
 	}
+	
 
 	///////////////////////////////////////////DISPARO
 
@@ -229,25 +288,30 @@ void Character::UpdateCharacterPosition(sf::Keyboard::Key _keyPressed, bool _pre
 	case UP:
 			auxBullet = new Bullet(characterSprite.getPosition(), Direcciones::UP);
 			myBullets.push_back(auxBullet);
+			enviarDisparo = true;
 		break;
 
 	case RIGHT:
 			auxBullet = new Bullet(characterSprite.getPosition(), Direcciones::RIGHT);
 			myBullets.push_back(auxBullet);
+			enviarDisparo = true;
 		break;
 
 	case DOWN:
 			auxBullet = new Bullet(characterSprite.getPosition(), Direcciones::DOWN);
 			myBullets.push_back(auxBullet);
+			enviarDisparo = true;
 		break;
 
 	case LEFT:
 			auxBullet = new Bullet(characterSprite.getPosition(), Direcciones::LEFT);
 			myBullets.push_back(auxBullet);
+			enviarDisparo = true;
 		break;
 
 	default:
 		break;
 	}
 	
+
 }

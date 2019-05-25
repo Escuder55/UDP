@@ -7,8 +7,10 @@ Game::Game()
 	
 }
 
-Game::Game(CharacterType myCharacterType, float _posX, float _posY)
+Game::Game(CharacterType myCharacterType, float _posX, float _posY, sf::UdpSocket *sock)
 {
+	//Guardamos socket
+	socket = sock;
 	/////////////////////////////////////////////inicializaciones temporales,para probar cosas
 	doorsOpen = false;
 	currentBackground = 0;
@@ -19,7 +21,7 @@ Game::Game(CharacterType myCharacterType, float _posX, float _posY)
 	/////////////////////////////////////////////inicializamos el Character con el typo que le hayamos pasado,
 	/////////////////////////////////////////////en un futuro esta inicialización tendrá que ser con la skin que 
 	/////////////////////////////////////////////tenga el jugador en su base de datos
-	myCharacter = new Character(myCharacterType);
+	myCharacter = new Character(myCharacterType, sock);
 
 	//////////////////////////////////////////cargamos todos los sprites
 	InitSprites();
@@ -182,8 +184,8 @@ void Game::InputControl(sf::RenderWindow * window)
 		default:
 			break;
 		}
+		
 	}
-
 }
 
 void Game::DrawSprites()
