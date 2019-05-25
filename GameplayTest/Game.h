@@ -7,7 +7,7 @@ class Game :
 {
 public:
 	Game();
-	Game(CharacterType myCharacterType, float _posX, float _posY, sf::UdpSocket *sock);
+	Game(CharacterType myCharacterType, float _posX, float _posY, sf::UdpSocket *sock, int skin);
 	~Game();
 	void InitSprites();
 	TypeScene DrawScene();
@@ -22,7 +22,7 @@ public:
 		timeCounter = 0;
 	sf::IntRect myRect;
 	sf::Packet GamePack;
-
+	int partnerSkin;
 	Character* myCharacter;
 
 

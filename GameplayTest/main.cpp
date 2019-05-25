@@ -1019,6 +1019,7 @@ void serverMain()
 
 float posX, posY;
 //THREAD RECEIVE CLIENT
+int partnerSkin;
 void ClientReceive()
 {
 	sf::IpAddress auxIP;
@@ -1027,6 +1028,7 @@ void ClientReceive()
 	PlayerProxy teamMateAux;
 	int auxint=-1;
 
+	
 	while (true)
 	{
 
@@ -1101,7 +1103,10 @@ void ClientReceive()
 					packRecieve >> teamMateAux.posX;
 					packRecieve >> teamMateAux.posY;
 					packRecieve >> teamMateAux.skin;
-
+					if (teamMateAux.id != proxy.id)
+					{
+						partnerSkin = teamMateAux.skin;
+					}
 					myGame.players.push_back(teamMateAux);
 
 					std::cout << "id :" << teamMateAux.id << " " << teamMateAux.posX << " " << teamMateAux.posY << std::endl;
@@ -1110,7 +1115,10 @@ void ClientReceive()
 					packRecieve >> teamMateAux.posX;
 					packRecieve >> teamMateAux.posY;
 					packRecieve >> teamMateAux.skin;
-
+					if (teamMateAux.id != proxy.id)
+					{
+						partnerSkin = teamMateAux.skin;
+					}
 					myGame.players.push_back(teamMateAux);
 					std::cout << "id :" << teamMateAux.id << " " << teamMateAux.posX << " " << teamMateAux.posY << std::endl;
 					posX = teamMateAux.posX;
@@ -1296,7 +1304,7 @@ void clienteMain()
 			std::cout << "Nos vamos a la escena del Juego" << std::endl;
 			sceneState = TypeScene::PLAY;
 			auxType = static_cast<CharacterType>(proxy.skin);
-			currentScene = myGameScene = new Game(auxType,posX,posY, &socket);
+			currentScene = myGameScene = new Game(auxType,posX,posY, &socket, partnerSkin);
 			
 			currentScene->me = proxy;
 			break;

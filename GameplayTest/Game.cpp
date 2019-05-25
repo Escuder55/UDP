@@ -7,7 +7,7 @@ Game::Game()
 	
 }
 
-Game::Game(CharacterType myCharacterType, float _posX, float _posY, sf::UdpSocket *sock)
+Game::Game(CharacterType myCharacterType, float _posX, float _posY, sf::UdpSocket *sock, int skin)
 {
 	//Guardamos socket
 	socket = sock;
@@ -17,6 +17,7 @@ Game::Game(CharacterType myCharacterType, float _posX, float _posY, sf::UdpSocke
 
 	posPartnerX = _posX;
 	posPartnerY = _posY;
+	partnerSkin = skin;
 
 	/////////////////////////////////////////////inicializamos el Character con el typo que le hayamos pasado,
 	/////////////////////////////////////////////en un futuro esta inicialización tendrá que ser con la skin que 
@@ -35,11 +36,61 @@ Game::~Game()
 void Game::InitSprites()
 {
 	////////////////////////////////////////////////////////////////////////BACKGROUNDS
-
-	if (!partnerTexture.loadFromFile("res/img/Partner.png"))
+	switch (partnerSkin)
 	{
-		std::cout << "Cannot Load the image" << std::endl;
+	case 1:
+		if (!partnerTexture.loadFromFile("res/img/Character1.png"))
+		{
+			std::cout << "Cannot Load the image" << std::endl;
+		}
+		break;
+	case 2:
+		if (!partnerTexture.loadFromFile("res/img/Character2.png"))
+		{
+			std::cout << "Cannot Load the image" << std::endl;
+		}
+		break;
+	case 3:
+		if (!partnerTexture.loadFromFile("res/img/Character3.png"))
+		{
+			std::cout << "Cannot Load the image" << std::endl;
+		}
+		break;
+	case 4:
+		if (!partnerTexture.loadFromFile("res/img/Character4.png"))
+		{
+			std::cout << "Cannot Load the image" << std::endl;
+		}
+
+		break;
+	case 5:
+		if (!partnerTexture.loadFromFile("res/img/Character5.png"))
+		{
+			std::cout << "Cannot Load the image" << std::endl;
+		}
+		break;
+	case 6:
+		if (!partnerTexture.loadFromFile("res/img/Character6.png"))
+		{
+			std::cout << "Cannot Load the image" << std::endl;
+		}
+		break;
+	case 7:
+		if (!partnerTexture.loadFromFile("res/img/Character7.png"))
+		{
+			std::cout << "Cannot Load the image" << std::endl;
+		}
+		break;
+	case 8:
+		if (!partnerTexture.loadFromFile("res/img/Character8.png"))
+		{
+			std::cout << "Cannot Load the image" << std::endl;
+		}
+		break;
+	default:
+		break;
 	}
+	
 	partner.setTexture(partnerTexture);
 	partner.setPosition(posPartnerX, posPartnerY);
 	//partner.setScale(sf::Vector2f(0.5, 0.5));
