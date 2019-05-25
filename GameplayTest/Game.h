@@ -21,7 +21,6 @@ public:
 		animationCounterY = 0,
 		timeCounter = 0;
 	sf::IntRect myRect;
-	void UpdatePartnerPosition(float _posX, float _posY);
 	sf::Packet GamePack;
 
 	Character* myCharacter;
@@ -34,10 +33,6 @@ private:
 	sf::Sprite doors[4];
 	sf::UdpSocket *socket;
 
-	float posPartnerX;
-	float posPartnerY;
-	sf::Texture partnerTexture;
-	sf::Sprite partner;
 
 	TypeScene myTypeScene;
 };

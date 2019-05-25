@@ -28,11 +28,9 @@ Game::Game(CharacterType myCharacterType, float _posX, float _posY, sf::UdpSocke
 	InitWindow();
 }
 
-
 Game::~Game()
 {
 }
-
 
 void Game::InitSprites()
 {
@@ -203,9 +201,4 @@ void Game::DrawSprites()
 		}
 	}
 	window.draw(partner);
-}
-
-void Game::UpdatePartnerPosition(float _posX, float _posY)
-{
-	partner.setPosition(_posX,_posY);
 }

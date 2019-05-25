@@ -354,12 +354,13 @@ void ServerReceive()
 				break;
 			}
 			case PROTOCOLO::STARTGAMEACCEPTED:
-			{	std::cout << "aqui 1" << std::endl;
+			{	
+				std::cout << "aqui 1" << std::endl;
 				mutex.lock();
 				if (playersConnecteds[getId(adress, port)].Critic_Message.count(PROTOCOLO::STARTGAME) > 0)
-			{
-				playersConnecteds[getId(adress, port)].Critic_Message.find(PROTOCOLO::STARTGAME)->second.id = -1;
-			}
+				{
+					playersConnecteds[getId(adress, port)].Critic_Message.find(PROTOCOLO::STARTGAME)->second.id = -1;
+				}
 				mutex.unlock(); 
 				break;
 			}				
@@ -410,6 +411,7 @@ void SendRegularPack()
 	//std::cout << "Port: " << port << std::endl;
 
 	sf::Packet auxPacket;
+	int auxPacketInt;
 
 	//PROTOCOLO A DAR
 	int auxOrder;
@@ -688,6 +690,7 @@ void SendRegularPack()
 								//Enviamos a todos los otros jugadores esta info////////////////////////////////////////////
 								//Rellenamos paquete
 								auxPacket.clear();
+								auxPacket << PROTOCOLO::TEAMPOSITION;
 								auxPacket << playersConnecteds[iterador].id;
 								auxPacket << playersConnecteds[iterador].posX;
 								auxPacket << playersConnecteds[iterador].posY;
@@ -725,6 +728,12 @@ void SendRegularPack()
 							std::cout << "Enviado movimiento de un jugador a otro" << std::endl;
 							std::multimap<PROTOCOLO, Mensaje>::iterator itToRemove = playersConnecteds[iterador].Regular_Message.find(PROTOCOLO::TEAMPOSITION);
 							playersConnecteds[iterador].Regular_Message.erase(itToRemove);
+							auxPacket >> auxPacketInt;
+							std::cout << "SERVER ENVIA ID:" << auxPacketInt << std::endl;
+							auxPacket >> auxPacketInt;
+							std::cout << "SERVER ENVIA POS X:" << auxPacketInt << std::endl;
+							auxPacket >> auxPacketInt;
+							std::cout << "SERVER ENVIA POS Y:" << auxPacketInt << std::endl;
 						}
 						else
 						{
@@ -1131,6 +1140,18 @@ void ClientReceive()
 				{
 					//Caso que nos impide
 				}
+				break;
+			}
+			case PROTOCOLO::TEAMPOSITION:
+			{
+				packRecieve >> auxint;
+				packRecieve >> posX;
+				packRecieve >> posY;
+
+				std::cout << "--------------------------------- " << std::endl;
+				std::cout << "ID recibido: " << auxint << std::endl;
+				std::cout << "La posicion del otro player en X es: " << posX << std::endl;
+				std::cout << "La posicion del otro player en Y es: " << posY << std::endl;
 				break;
 			}
 			default:

@@ -26,6 +26,13 @@ public:
 	clock_t clockTicksTaken;
 	double timeInSeconds;
 
+	//PARTNER
+	float posPartnerX;
+	float posPartnerY;
+	sf::Texture partnerTexture;
+	sf::Sprite partner;
+	void UpdatePartnerPosition(float _posX, float _posY);
+
 protected:
 	virtual void InputControl(sf::RenderWindow* window);
 	virtual void sendPacketCritic(sf::Packet & pack, sf::IpAddress _IP, unsigned short _port);

@@ -26,6 +26,11 @@ TypeScene Scene::DrawScene()
 	return myTypeScene;
 }
 
+void Scene::UpdatePartnerPosition(float _posX, float _posY)
+{
+	partner.setPosition(_posX, _posY);
+}
+
 void Scene::InputControl(sf::RenderWindow * window)
 {
 }
