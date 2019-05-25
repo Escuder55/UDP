@@ -397,6 +397,11 @@ void SendRegularPack()
 	//KILLED MONSTERS
 	int KilledMonsters;
 
+	//MOVEMENT
+	int posX[5];
+	int posY[5];
+	bool OKMovement = false;
+
 	//std::cout << "Adress: " << adress << std::endl;
 	//std::cout << "Port: " << port << std::endl;
 
@@ -497,14 +502,12 @@ void SendRegularPack()
 
 						YouCanSignUp = false;
 
-						if
-							(password == repeatPassword)
+						if(password == repeatPassword)
 						{
 							SQLusername = username.c_str();
 							SQLpassword = password.c_str();
 							SQLSkin = std::atoi(skin.c_str());
 
-							
 							//COMPROVACION
 							std::cout << "Register with User:		" << username << std::endl;
 							std::cout << "Register with Password:	" << password << std::endl;
@@ -531,14 +534,13 @@ void SendRegularPack()
 
 									}
 								}
+
+								//COGEMOS MONSTRUOS MATADOS DEL USUARIO
+								KilledMonsters = BaseDatos->getMonstersKilledPlayer(SQLusername, SQLpassword);
+								playersConnecteds[iterador].id_cuenta = BaseDatos->getIdCuenta(SQLusername, SQLpassword);
+								std::cout << "Enemigos matados: " << KilledMonsters << std::endl;
+								playersConnecteds[iterador].NumEnemigos = KilledMonsters;
 							}
-
-							//COGEMOS MONSTRUOS MATADOS DEL USUARIO
-							KilledMonsters = BaseDatos->getMonstersKilledPlayer(SQLusername, SQLpassword);
-							playersConnecteds[iterador].id_cuenta = BaseDatos->getIdCuenta(SQLusername, SQLpassword);
-							std::cout << "Enemigos matados: " << KilledMonsters << std::endl;
-							playersConnecteds[iterador].NumEnemigos = KilledMonsters;
-
 						}
 
 
@@ -565,12 +567,6 @@ void SendRegularPack()
 						SQLusername = username.c_str();
 						SQLpassword = password.c_str();
 
-						//COGEMOS MONSTRUOS MATADOS DEL USUARIO
-						KilledMonsters = BaseDatos->getMonstersKilledPlayer(SQLusername, SQLpassword);
-						playersConnecteds[iterador].id_cuenta = BaseDatos->getIdCuenta(SQLusername, SQLpassword);
-						std::cout << "Enemigos matados: " << KilledMonsters << std::endl;
-						playersConnecteds[iterador].NumEnemigos = KilledMonsters;
-
 						std::cout << "La ID_Cuenta es:  " << playersConnecteds[iterador].id_cuenta << std::endl;
 
 						std::cout << "He recibido un intento de Login." << std::endl;
@@ -588,7 +584,15 @@ void SendRegularPack()
 								YouCanLogin = BaseDatos->LoginUser(SQLusername, SQLpassword);
 								std::cout << "El usuario puede entrar? " << YouCanLogin << std::endl;
 
-								playersConnecteds[i].skin = BaseDatos->TakeSkin(SQLusername, SQLpassword);
+								if (YouCanLogin)
+								{
+									//COGEMOS MONSTRUOS MATADOS DEL USUARIO
+									KilledMonsters = BaseDatos->getMonstersKilledPlayer(SQLusername, SQLpassword);
+									playersConnecteds[iterador].id_cuenta = BaseDatos->getIdCuenta(SQLusername, SQLpassword);
+									std::cout << "Enemigos matados: " << KilledMonsters << std::endl;
+									playersConnecteds[iterador].NumEnemigos = KilledMonsters;
+									playersConnecteds[i].skin = BaseDatos->TakeSkin(SQLusername, SQLpassword);
+								}
 
 								//SEND TO CLIENT
 								auxPacket.clear();
@@ -631,6 +635,55 @@ void SendRegularPack()
 					}
 					case MOVEMENT:
 					{
+						for (int i = 0; i < 5; i++)
+						{
+							auxPacket >> posX[i];
+							auxPacket >> posY[i];
+
+							//HAY QUE COMPROBAR LAS COLISIONES
+							OKMovement = true;
+							if (OKMovement)
+							{
+
+							}
+						}
+						
+						if (OKMovement)
+						{
+							//ACTUALIZO LA POSICION DEL JUGADOR QUE HA ENVIADO EL MOVIMIENTO
+							playersConnecteds[iterador].posX = posX[5];
+							playersConnecteds[iterador].posY = posY[5];
+
+							auxPacket.clear();
+							auxPacket << PROTOCOLO::MOVEMENT;
+							auxPacket << playersConnecteds[iterador].Regular_Message.find(PROTOCOLO::MOVEMENT)->second.id;
+							status = socket.send(auxPacket, playersConnecteds[iterador].IP_Adress, playersConnecteds[iterador].port);
+							if (status == sf::Socket::Done)
+							{
+								std::cout << "He enviado el paquete de moviento bro" << std::endl;
+
+								//ELIMINAMOS LOS PAQUETES ANTERIORES
+								for (std::multimap<PROTOCOLO, Mensaje>::iterator it = playersConnecteds[iterador].Regular_Message.begin(); it != playersConnecteds[iterador].Regular_Message.end(); ++it)
+								{
+									if ((*it).first == PROTOCOLO::MOVEMENT)
+									{
+										if ((*it).second.id < playersConnecteds[iterador].Regular_Message.find(PROTOCOLO::MOVEMENT)->second.id)
+										{
+											playersConnecteds[iterador].Regular_Message.erase(it);
+										}
+									}
+									std::multimap<PROTOCOLO, Mensaje>::iterator it2 = playersConnecteds[iterador].Regular_Message.find(PROTOCOLO::MOVEMENT);
+									playersConnecteds[iterador].Regular_Message.erase(it2);
+
+									std::cout << (*it).first << " => " << (*it).second.id << '\n';
+								}
+
+							}
+							else
+							{
+								std::cout << "No pude enviar el movimiento acumulado" << std::endl;
+							}
+						}
 						break;
 					}
 					default:
