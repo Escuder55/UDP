@@ -1144,6 +1144,7 @@ void ClientReceive()
 				packRecieve >> posX;
 				packRecieve >> posY;
 				
+				currentScene->UpdatePartnerPosition(posX, posY);
 				//Actualizar Posicion avatrares
 				//
 				//
