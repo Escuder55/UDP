@@ -104,6 +104,7 @@ struct Sala
 	int puertas[4];
 	int numEnemigos=0;
 };
+
 struct Enemy
 {
 	int ID;
@@ -118,5 +119,3 @@ struct MapaGame
 	Sala salas[4];
 	std::vector<Enemy> enemiesMap;
 };
-
-

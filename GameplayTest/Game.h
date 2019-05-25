@@ -27,7 +27,7 @@ public:
 
 
 private:
-	sf::Texture  bgTexture[3];
+	sf::Texture  bgTexture[4];
 	sf::Texture  doorTexture[4];
 	sf::Sprite background[3];
 	sf::Sprite doors[4];

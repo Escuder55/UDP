@@ -97,7 +97,7 @@ void Game::InitSprites()
 
 
 		///////////////////BACKGROUND 1
-	if (!bgTexture[0].loadFromFile("res/img/Backgorund1.png"))
+	if (!bgTexture[0].loadFromFile("res/img/Sala1.png"))
 	{
 		std::cout << "Cannot Load the image" << std::endl;
 	}
@@ -106,7 +106,7 @@ void Game::InitSprites()
 	background[0].setScale(sf::Vector2f(0.5, 0.5));
 
 	///////////////////BACKGROUND 2
-	if (!bgTexture[1].loadFromFile("res/img/Backgorund2.png"))
+	if (!bgTexture[1].loadFromFile("res/img/Sala2.png"))
 	{
 		std::cout << "Cannot Load the image" << std::endl;
 	}
@@ -115,14 +115,22 @@ void Game::InitSprites()
 	background[1].setScale(sf::Vector2f(0.5, 0.5));
 
 	///////////////////BACKGROUND 2
-	if (!bgTexture[2].loadFromFile("res/img/Backgorund3.png"))
+	if (!bgTexture[2].loadFromFile("res/img/Sala3.png"))
 	{
 		std::cout << "Cannot Load the image" << std::endl;
 	}
 	background[2].setTexture(bgTexture[2]);
 	background[2].setPosition(sf::Vector2f(0.0f, 0.0f));
 	background[2].setScale(sf::Vector2f(0.5, 0.5));
-
+	///////////////////BACKGROUND 2
+	if (!bgTexture[3].loadFromFile("res/img/Sala4.png"))
+	{
+		std::cout << "Cannot Load the image" << std::endl;
+	}
+	background[3].setTexture(bgTexture[3]);
+	background[3].setPosition(sf::Vector2f(0.0f, 0.0f));
+	background[3].setScale(sf::Vector2f(0.5, 0.5));
+			   
 	////////////////////////////////////////////////////////////////////////DOORS
 
 		////////////UP DOOR
@@ -220,6 +228,10 @@ void Game::InputControl(sf::RenderWindow * window)
 				{
 					currentBackground = 2;
 				}
+				else if (event.key.code == sf::Keyboard::Num3)
+				{
+					currentBackground = 3;
+				}
 			break;
 		case sf::Event::KeyReleased:
 			////////////////////////////////////comprobamos si se deja de apretar alguna de las teclas
@@ -239,17 +251,18 @@ void Game::InputControl(sf::RenderWindow * window)
 }
 
 void Game::DrawSprites()
-{
-	
-		
+{		
 	window.draw(background[currentBackground]);	
 	///////////////////////////PINTANDO LAS PUERTAS
 	if (!doorsOpen)
 	{
 		for (int i = 0; i < 4; i++)
 		{
-			window.draw(doors[i]);
+			//window.draw(doors[i]);
 		}
 	}
-	window.draw(partner);
+	if (partnerSala == mySala)
+	{
+		window.draw(partner);
+	}	
 }

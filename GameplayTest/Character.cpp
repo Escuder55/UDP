@@ -116,7 +116,7 @@ void Character::DrawCharacter(sf::RenderWindow * window)
 	}
 
 	//Envio Acumulados////////////////////////////////////////////////
-	if (timeInSeconds2 > 0.5)
+	if (timeInSeconds2 > 0.2)
 	{
 		startTime2 = clock();
 		accumMovementForPacket.push_back({ characterPosition.x, characterPosition.y });
@@ -278,11 +278,14 @@ void Character::UpdateCharacterPosition(sf::Keyboard::Key _keyPressed, bool _pre
 		break;
 	}
 	
+	if (hoverRightDoor())
+	{
+		std::cout << "Me piro a la sala 2-----------------------" << std::endl;;
+	}
 
 	///////////////////////////////////////////DISPARO
 
 	///////////////////////comprobamos los disparos
-	//////////////////////////////comprobamos el movimiento
 	switch (shooting)
 	{
 	case NONE:
@@ -333,4 +336,17 @@ void Character::cleanAccumMovement(int idConfirmed)
 		else
 			it++;
 	}
+}
+
+
+bool Character::hoverRightDoor()
+{
+	if ((characterSprite.getPosition().x + characterSprite.getTextureRect().width) > DOOR_RIGHT_POS_X)
+	{		
+		if ((characterSprite.getPosition().y > DOOR_RIGHT_POS_Y))
+		{
+			return true;
+		}
+	}
+	return false;
 }

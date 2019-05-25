@@ -1020,6 +1020,7 @@ void serverMain()
 float posX, posY;
 //THREAD RECEIVE CLIENT
 int partnerSkin;
+
 void ClientReceive()
 {
 	sf::IpAddress auxIP;
@@ -1107,6 +1108,7 @@ void ClientReceive()
 					{
 						partnerSkin = teamMateAux.skin;
 					}
+					teamMateAux.idSalaActual = 0;
 					myGame.players.push_back(teamMateAux);
 
 					std::cout << "id :" << teamMateAux.id << " " << teamMateAux.posX << " " << teamMateAux.posY << std::endl;
@@ -1118,7 +1120,10 @@ void ClientReceive()
 					if (teamMateAux.id != proxy.id)
 					{
 						partnerSkin = teamMateAux.skin;
+						currentScene->partnerSala = 0;						
 					}
+					currentScene->mySala = 0;
+					teamMateAux.idSalaActual = 0;
 					myGame.players.push_back(teamMateAux);
 					std::cout << "id :" << teamMateAux.id << " " << teamMateAux.posX << " " << teamMateAux.posY << std::endl;
 					posX = teamMateAux.posX;
@@ -1128,7 +1133,7 @@ void ClientReceive()
 				packRecieve.clear();
 				packRecieve << PROTOCOLO::STARTGAMEACCEPTED;
 				if (socket.send(packRecieve, proxy.IP_Adress, proxy.port) == sf::Socket::Done)
-				{
+				{					
 					//currentScene->CloseWindow();
 					std::cout << "Empieza partida " << std::endl;
 					currentScene->finishSending = true;

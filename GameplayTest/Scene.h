@@ -31,6 +31,8 @@ public:
 	float posPartnerY;
 	sf::Texture partnerTexture;
 	sf::Sprite partner;
+	int partnerSala;
+	int mySala;
 	void UpdatePartnerPosition(float _posX, float _posY);
 
 protected:
