@@ -22,7 +22,8 @@ public:
 	float posX;
 	float posY;
 	int NumEnemigos;
-	
+	int idPartidaActual;
+
 	PlayerProxy();
 	~PlayerProxy();
 };

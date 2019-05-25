@@ -473,6 +473,12 @@ void SendRegularPack()
 					auxProtocolo = PROTOCOLO::MOVEMENT;
 					//std::cout << "6" << std::endl;
 				}
+				if (aux < playersConnecteds[iterador].Regular_Message.count(PROTOCOLO::TEAMPOSITION))
+				{
+					aux = playersConnecteds[iterador].Regular_Message.count(PROTOCOLO::TEAMPOSITION);
+					auxProtocolo = PROTOCOLO::TEAMPOSITION;
+					//std::cout << "6" << std::endl;
+				}
 
 				switch (auxProtocolo)
 				{
@@ -640,13 +646,10 @@ void SendRegularPack()
 					case MOVEMENT:
 					{
 						auxPacket = playersConnecteds[iterador].Regular_Message.find(auxProtocolo)->second.pack;
-						std::cout << "--------------------------------------------------" << std::endl;
 						for (int i = 0; i < 5; i++)
 						{
 							auxPacket >> posX[i];
 							auxPacket >> posY[i];
-							std::cout << "X :" << posX[i] << std::endl;
-							std::cout << "Y :" << posY[i] << std::endl;
 							//HAY QUE COMPROBAR LAS COLISIONES
 							OKMovement = true;
 							if (OKMovement)
@@ -654,7 +657,6 @@ void SendRegularPack()
 
 							}
 						}
-						std::cout << "--------------------------------------------------" << std::endl;
 						if (OKMovement)
 						{
 							//ACTUALIZO LA POSICION DEL JUGADOR QUE HA ENVIADO EL MOVIMIENTO
@@ -683,6 +685,28 @@ void SendRegularPack()
 								std::multimap<PROTOCOLO, Mensaje>::iterator it2 = playersConnecteds[iterador].Regular_Message.find(PROTOCOLO::MOVEMENT);
 								playersConnecteds[iterador].Regular_Message.erase(it2);
 								
+								//Enviamos a todos los otros jugadores esta info////////////////////////////////////////////
+								//Rellenamos paquete
+								auxPacket.clear();
+								auxPacket << playersConnecteds[iterador].id;
+								auxPacket << playersConnecteds[iterador].posX;
+								auxPacket << playersConnecteds[iterador].posY;
+								//Buscamos la partida
+								for (int i = 0; i < gamesProxy.size(); i++)
+								{
+									if (gamesProxy[i].id == playersConnecteds[iterador].idPartidaActual)
+									{
+										//Recorremos el vector de jugadores introduciendo el packet que deberemos enviar
+										for (int j = 0; j < gamesProxy[i].players.size(); j++)
+										{
+											if (gamesProxy[i].players[j].id != playersConnecteds[iterador].id) 
+											{
+												playersConnecteds[gamesProxy[i].players[j].id-1].Regular_Message.insert({ PROTOCOLO::TEAMPOSITION, Mensaje(playersConnecteds[iterador].id,auxPacket) });
+											}
+										}
+									}
+								}
+								//////////////////////////////////////////////////////////////////////////////////////////
 							}
 							else
 							{
@@ -690,6 +714,23 @@ void SendRegularPack()
 							}
 						}
 						break;
+					}
+					case TEAMPOSITION:
+					{
+						std::cout << "----------------------------------------------" << std::endl;
+						auxPacket = playersConnecteds[iterador].Regular_Message.find(PROTOCOLO::TEAMPOSITION)->second.pack;
+						status = socket.send(auxPacket, playersConnecteds[iterador].IP_Adress, playersConnecteds[iterador].port);
+						if (status == sf::Socket::Done)
+						{
+							std::cout << "Enviado movimiento de un jugador a otro" << std::endl;
+							std::multimap<PROTOCOLO, Mensaje>::iterator itToRemove = playersConnecteds[iterador].Regular_Message.find(PROTOCOLO::TEAMPOSITION);
+							playersConnecteds[iterador].Regular_Message.erase(itToRemove);
+						}
+						else
+						{
+							std::cout << "No pude enviar el movimiento acumulado" << std::endl;
+						}
+						break; 
 					}
 					default:
 					{
@@ -745,6 +786,7 @@ void SendRegularPack()
 							if (playersWaitingMap1[i].id == playersConnecteds[j].id)
 							{
 								gamesProxy.back().players.push_back(playersConnecteds[j]);
+								playersConnecteds[j].idPartidaActual = games - 1;
 								//playersWaitingMap1.erase(playersWaitingMap1.begin());
 								idPlayers[i] = j;
 								std::cout << "UNA VEZ!!!!!!!!!!!!!!!!!!!!!!!!" <<j<< std::endl;
@@ -1081,7 +1123,14 @@ void ClientReceive()
 			case PROTOCOLO::MOVEMENT:
 			{
 				packRecieve >> auxint;
-				myGameScene->myCharacter->cleanAccumMovement(auxint);
+				if (auxint >= 0)
+				{
+					myGameScene->myCharacter->cleanAccumMovement(auxint);
+				}
+				else
+				{
+					//Caso que nos impide
+				}
 				break;
 			}
 			default:
