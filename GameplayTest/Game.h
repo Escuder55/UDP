@@ -24,6 +24,9 @@ public:
 	void UpdatePartnerPosition(float _posX, float _posY);
 	sf::Packet GamePack;
 
+	Character* myCharacter;
+
+
 private:
 	sf::Texture  bgTexture[3];
 	sf::Texture  doorTexture[4];
@@ -35,8 +38,6 @@ private:
 	float posPartnerY;
 	sf::Texture partnerTexture;
 	sf::Sprite partner;
-
-	Character* myCharacter;
 
 	TypeScene myTypeScene;
 };

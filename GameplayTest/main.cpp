@@ -49,7 +49,9 @@ PlayerProxy proxy;
 //PLAYER PROXIES
 std::vector<PlayerProxy> playersConnecteds;
 
+/////////////////////////////////////////////////////////Variables sin categoria
 
+Game *myGameScene;
 
 ////////////////////////////////////////funcio para encontrar la id del usuario que envia el mensaje
 int getId(sf::IpAddress _adres, unsigned short _port)
@@ -245,8 +247,8 @@ void ServerReceive()
 			std::string password;
 			std::string repeatPassword;
 
-			std::cout << "Adress: " << adress << std::endl;
-			std::cout << "Port: " << port << std::endl;
+			//std::cout << "Adress: " << adress << std::endl;
+			//std::cout << "Port: " << port << std::endl;
 			//PROTOCOLO A DAR
 			int auxOrder;			
 
@@ -255,7 +257,7 @@ void ServerReceive()
 
 			//COMPROBACION
 			
-			std::cout << "He recibido lo siguiente: "  << auxOrder << std::endl;
+			//std::cout << "He recibido lo siguiente: "  << auxOrder << std::endl;
 
 			bool newPlayer = true;
 			int currentId;
@@ -380,13 +382,12 @@ void ServerReceive()
 			//std::cout << "No he recibido nada" << std::endl;
 		}
 	}
-	std::cout << "fuga" << std::endl;
+	//std::cout << "fuga" << std::endl;
 }
 
 //THREAD PAQUETES NORMALES
 void SendRegularPack()
 {
-
 	//////////// ------------ VARIABLES A UTILIZAR ------------ ////////////
 	int iterador = 0 ;
 	int aux = 0;
@@ -638,13 +639,14 @@ void SendRegularPack()
 					}
 					case MOVEMENT:
 					{
-
+						auxPacket = playersConnecteds[iterador].Regular_Message.find(auxProtocolo)->second.pack;
+						std::cout << "--------------------------------------------------" << std::endl;
 						for (int i = 0; i < 5; i++)
 						{
 							auxPacket >> posX[i];
 							auxPacket >> posY[i];
-
-							std::cout << "posX: " << posX[i] << "posY: " << posY[i] << '\n';
+							std::cout << "X :" << posX[i] << std::endl;
+							std::cout << "Y :" << posY[i] << std::endl;
 							//HAY QUE COMPROBAR LAS COLISIONES
 							OKMovement = true;
 							if (OKMovement)
@@ -652,7 +654,7 @@ void SendRegularPack()
 
 							}
 						}
-						
+						std::cout << "--------------------------------------------------" << std::endl;
 						if (OKMovement)
 						{
 							//ACTUALIZO LA POSICION DEL JUGADOR QUE HA ENVIADO EL MOVIMIENTO
@@ -665,8 +667,6 @@ void SendRegularPack()
 							status = socket.send(auxPacket, playersConnecteds[iterador].IP_Adress, playersConnecteds[iterador].port);
 							if (status == sf::Socket::Done)
 							{
-								//std::cout << "He enviado el paquete de moviento bro" << std::endl;
-
 								//ELIMINAMOS LOS PAQUETES ANTERIORES
 								for (std::multimap<PROTOCOLO, Mensaje>::iterator it = playersConnecteds[iterador].Regular_Message.begin(); it != playersConnecteds[iterador].Regular_Message.end(); ++it)
 								{
@@ -682,7 +682,7 @@ void SendRegularPack()
 
 								std::multimap<PROTOCOLO, Mensaje>::iterator it2 = playersConnecteds[iterador].Regular_Message.find(PROTOCOLO::MOVEMENT);
 								playersConnecteds[iterador].Regular_Message.erase(it2);
-
+								
 							}
 							else
 							{
@@ -978,6 +978,8 @@ void ClientReceive()
 	unsigned short auxport;
 	sf::Packet packRecieve;
 	PlayerProxy teamMateAux;
+	int auxint=-1;
+
 	while (true)
 	{
 
@@ -1074,9 +1076,14 @@ void ClientReceive()
 					currentScene->finishSending = true;
 					sceneState = TypeScene::GOTO_PLAY;
 				}
-				
-				//Ponerme a mi
+					//Ponerme a mi
 				break;
+			case PROTOCOLO::MOVEMENT:
+			{
+				packRecieve >> auxint;
+				myGameScene->myCharacter->cleanAccumMovement(auxint);
+				break;
+			}
 			default:
 				break;
 			}
@@ -1218,7 +1225,8 @@ void clienteMain()
 			std::cout << "Nos vamos a la escena del Juego" << std::endl;
 			sceneState = TypeScene::PLAY;
 			auxType = static_cast<CharacterType>(proxy.skin);
-			currentScene = new Game(auxType,posX,posY, &socket);
+			currentScene = myGameScene = new Game(auxType,posX,posY, &socket);
+			
 			currentScene->me = proxy;
 			break;
 		default:

@@ -24,6 +24,7 @@ public:
 	void DrawCharacter(sf::RenderWindow * window);
 	void DrawBullets(sf::RenderWindow * window);
 	void UpdateCharacterPosition(sf::Keyboard::Key _keyPressed, bool _pressed);
+	void cleanAccumMovement(int idConfirmed);
 
 private:
 	sf::Texture cTexture;
@@ -31,6 +32,7 @@ private:
 	sf::Sprite characterSprite;
 	sf::Vector2f spritePosition;
 	sf::Vector2f characterPosition;
+
 	std::list<Mensaje> accumMove;
 	
 	//Para acumulados
