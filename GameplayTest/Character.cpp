@@ -120,28 +120,31 @@ void Character::DrawCharacter(sf::RenderWindow * window)
 	{
 		startTime2 = clock();
 		accumMovementForPacket.push_back({ characterPosition.x, characterPosition.y });
-		std::cout << "Rellenamos una posicion" << std::endl;
 	}
 	//Guardamos el envio del packeteAcumulado.
-	if (timeInSeconds > 0.5)
+	if (accumMovementForPacket.size() == 5)
 	{
-		startTime = clock(); 
 		movementPacket.clear();
+
 		movementPacket << PROTOCOLO::MOVEMENT;
 		auxMensaje.protocolo = PROTOCOLO::MOVEMENT;
+
 		movementPacket << idAccum;
 		auxMensaje.id = idAccum;
+
 		idAccum++;
 		//rellenamos el packet para enviarlo con los movimientos acumulados
 		for (int i = 0; i < accumMovementForPacket.size(); i++)
 		{
 			movementPacket << accumMovementForPacket[i].posX;
 			movementPacket << accumMovementForPacket[i].posY;
+
+			std::cout << "POSX :" << accumMovementForPacket[i].posX << " POSY :" << accumMovementForPacket[i].posY << std::endl;
 		}
 		//Rellenamos lista acumulados
 		auxMensaje.pack = movementPacket;
 		accumMove.push_back(auxMensaje);
-
+		accumMovementForPacket.clear();
 		sf::Socket::Status status = socket->send(movementPacket,IP_CLASE,PORT);
 		if (status != sf::Socket::Done)
 		{

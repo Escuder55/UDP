@@ -364,8 +364,11 @@ void ServerReceive()
 			case PROTOCOLO::MOVEMENT:
 			{
 				pack >> currentId;
+				mutex.lock();
 				playersConnecteds[getId(adress, port)].Regular_Message.insert({ PROTOCOLO::MOVEMENT, Mensaje(currentId, pack)});
-				std::cout << "ID aAcumulado : " << currentId;
+				mutex.unlock();
+
+				//std::cout << "ID aAcumulado : " << currentId;
 				break;
 			}
 			default:
@@ -398,8 +401,8 @@ void SendRegularPack()
 	int KilledMonsters;
 
 	//MOVEMENT
-	int posX[5];
-	int posY[5];
+	float posX[5];
+	float posY[5];
 	bool OKMovement = false;
 
 	//std::cout << "Adress: " << adress << std::endl;
@@ -635,11 +638,13 @@ void SendRegularPack()
 					}
 					case MOVEMENT:
 					{
+
 						for (int i = 0; i < 5; i++)
 						{
 							auxPacket >> posX[i];
 							auxPacket >> posY[i];
 
+							std::cout << "posX: " << posX[i] << "posY: " << posY[i] << '\n';
 							//HAY QUE COMPROBAR LAS COLISIONES
 							OKMovement = true;
 							if (OKMovement)
@@ -660,7 +665,7 @@ void SendRegularPack()
 							status = socket.send(auxPacket, playersConnecteds[iterador].IP_Adress, playersConnecteds[iterador].port);
 							if (status == sf::Socket::Done)
 							{
-								std::cout << "He enviado el paquete de moviento bro" << std::endl;
+								//std::cout << "He enviado el paquete de moviento bro" << std::endl;
 
 								//ELIMINAMOS LOS PAQUETES ANTERIORES
 								for (std::multimap<PROTOCOLO, Mensaje>::iterator it = playersConnecteds[iterador].Regular_Message.begin(); it != playersConnecteds[iterador].Regular_Message.end(); ++it)
@@ -672,11 +677,11 @@ void SendRegularPack()
 											playersConnecteds[iterador].Regular_Message.erase(it);
 										}
 									}
-									std::multimap<PROTOCOLO, Mensaje>::iterator it2 = playersConnecteds[iterador].Regular_Message.find(PROTOCOLO::MOVEMENT);
-									playersConnecteds[iterador].Regular_Message.erase(it2);
-
-									std::cout << (*it).first << " => " << (*it).second.id << '\n';
+									//std::cout << (*it).first << " => " << (*it).second.id << '\n';
 								}
+
+								std::multimap<PROTOCOLO, Mensaje>::iterator it2 = playersConnecteds[iterador].Regular_Message.find(PROTOCOLO::MOVEMENT);
+								playersConnecteds[iterador].Regular_Message.erase(it2);
 
 							}
 							else

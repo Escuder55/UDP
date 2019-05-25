@@ -34,10 +34,6 @@ private:
 	std::list<Mensaje> accumMove;
 	
 	//Para acumulados
-	int lastPosX;
-	int lastPosY;
-	int newPosX;
-	int newPosY;
 	int idAccum;
 	Mensaje auxMensaje;
 	std::vector<movementPlayer> accumMovementForPacket;
