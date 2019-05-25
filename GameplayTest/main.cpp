@@ -812,8 +812,8 @@ void SendRegularPack()
 
 					auxPacket.clear();
 					auxPacket << PROTOCOLO::STARTGAME;
-					auxPacket << playersConnecteds[idPlayers[0]].id << 200.f << 150.f;
-					auxPacket << playersConnecteds[idPlayers[1]].id << 700.f << 150.f;
+					auxPacket << playersConnecteds[idPlayers[0]].id << 200.f << 150.f << playersConnecteds[idPlayers[0]].skin;
+					auxPacket << playersConnecteds[idPlayers[1]].id << 700.f << 150.f << playersConnecteds[idPlayers[1]].skin;
 					//auxPacket << playersConnecteds[idPlayers[2]].id << 100 << 400;
 					//auxPacket << playersConnecteds[idPlayers[3]].id << 700 << 400;
 
@@ -1100,6 +1100,7 @@ void ClientReceive()
 					packRecieve >> teamMateAux.id;
 					packRecieve >> teamMateAux.posX;
 					packRecieve >> teamMateAux.posY;
+					packRecieve >> teamMateAux.skin;
 
 					myGame.players.push_back(teamMateAux);
 
@@ -1108,6 +1109,8 @@ void ClientReceive()
 					packRecieve >> teamMateAux.id;
 					packRecieve >> teamMateAux.posX;
 					packRecieve >> teamMateAux.posY;
+					packRecieve >> teamMateAux.skin;
+
 					myGame.players.push_back(teamMateAux);
 					std::cout << "id :" << teamMateAux.id << " " << teamMateAux.posX << " " << teamMateAux.posY << std::endl;
 					posX = teamMateAux.posX;
