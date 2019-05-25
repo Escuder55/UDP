@@ -139,7 +139,7 @@ void Character::DrawCharacter(sf::RenderWindow * window)
 			movementPacket << accumMovementForPacket[i].posX;
 			movementPacket << accumMovementForPacket[i].posY;
 
-			std::cout << "POSX :" << accumMovementForPacket[i].posX << " POSY :" << accumMovementForPacket[i].posY << std::endl;
+			//std::cout << "POSX :" << accumMovementForPacket[i].posX << " POSY :" << accumMovementForPacket[i].posY << std::endl;
 		}
 		//Rellenamos lista acumulados
 		auxMensaje.pack = movementPacket;
@@ -152,7 +152,7 @@ void Character::DrawCharacter(sf::RenderWindow * window)
 		}
 		else
 		{
-			std::cout << "Se ha enviado el mensaje de movimiento" << std::endl;
+			//std::cout << "Se ha enviado el mensaje de movimiento" << std::endl;
 		}
 	}
 	//////////////////////////////////////////////////////////////////

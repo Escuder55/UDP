@@ -14,7 +14,6 @@ public:
 	void InputControl(sf::RenderWindow* window);
 	void DrawSprites();
 	bool doorsOpen;
-	int currentBackground;
 	int	spriteWidth = 291,
 		spriteHeight = 477;
 	int animationCounterX = 0,

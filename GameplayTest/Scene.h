@@ -34,7 +34,7 @@ public:
 	int partnerSala;
 	int mySala;
 	void UpdatePartnerPosition(float _posX, float _posY);
-
+	int currentBackground;
 protected:
 	virtual void InputControl(sf::RenderWindow* window);
 	virtual void sendPacketCritic(sf::Packet & pack, sf::IpAddress _IP, unsigned short _port);

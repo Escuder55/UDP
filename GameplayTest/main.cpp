@@ -205,6 +205,33 @@ bool IsInTheList(int id)
 	return false;
 }
 
+//Comprobar cambio room//////////////////////////////////////////////////////////////////////
+
+bool hoverRightDoor(float x, float y)
+{
+	if ((x + SPRITE_CHARACTER_WIDTH) > DOOR_RIGHT_POS_X)
+	{
+		if ((y > (DOOR_RIGHT_POS_Y - 45)) && (y < (DOOR_RIGHT_POS_Y)))
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+bool hoverDownDoor(float x, float y)
+{
+	if ((x < DOOR_DOWN_POS_X + 40) && (x > DOOR_DOWN_POS_X - 35))
+	{
+		if (((y + SPRITE_CHARACTER_HEIGHT) > DOOR_DOWN_POS_Y))
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+
 //THREAD RECEIVE SERVER
 void ServerReceive()
 {
@@ -227,12 +254,12 @@ void ServerReceive()
 
 	/*for (int i = 0; i < map1.enemiesMap.size(); i++)
 	{
-		std::cout << "Enemigos: " << map1.enemiesMap[i].ID << " " << map1.enemiesMap[i].ID_Sala << " " << map1.enemiesMap[i].posX << " " << map1.enemiesMap[i].posY << std::endl;
+		//std::cout << "Enemigos: " << map1.enemiesMap[i].ID << " " << map1.enemiesMap[i].ID_Sala << " " << map1.enemiesMap[i].posX << " " << map1.enemiesMap[i].posY << std::endl;
 	}*/
 
 	
 	int auxSala;
-
+	int auxIdToRemovePack;
 	std::cout << "ENTRO EN EL THREAD" << std::endl;
 
 	while (true)
@@ -247,8 +274,8 @@ void ServerReceive()
 			std::string password;
 			std::string repeatPassword;
 
-			//std::cout << "Adress: " << adress << std::endl;
-			//std::cout << "Port: " << port << std::endl;
+			////std::cout << "Adress: " << adress << std::endl;
+			////std::cout << "Port: " << port << std::endl;
 			//PROTOCOLO A DAR
 			int auxOrder;			
 
@@ -257,7 +284,7 @@ void ServerReceive()
 
 			//COMPROBACION
 			
-			//std::cout << "He recibido lo siguiente: "  << auxOrder << std::endl;
+			////std::cout << "He recibido lo siguiente: "  << auxOrder << std::endl;
 
 			bool newPlayer = true;
 			int currentId;
@@ -289,7 +316,7 @@ void ServerReceive()
 					mutex.lock();
 					playersConnecteds[getId(adress, port)].Regular_Message.insert({ PROTOCOLO::HELLO, Mensaje(playersConnecteds[getId(adress, port)].counterPacket, pack) });
 					mutex.unlock();
-					std::cout << " Se ha recibido un nuevo cliente." << std::endl;
+					//std::cout << " Se ha recibido un nuevo cliente." << std::endl;
 				}
 				else
 				{
@@ -320,7 +347,7 @@ void ServerReceive()
 					if (!IsInTheList(playersConnecteds[getId(adress, port)].id))
 					{
 						playersWaitingMap1.push_back({ getId(adress, port)+1 ,1,playersConnecteds[getId(adress, port)].NumEnemigos });
-						std::cout << "Quieren entrar!                     fewefew" << std::endl;
+						//std::cout << "Quieren entrar!                     fewefew" << std::endl;
 					}					
 					break;
 				}
@@ -343,7 +370,7 @@ void ServerReceive()
 					break;
 				}
 				default:
-					std::cout << "No se ha recicbido bien la sala que se quiere jugar." << std::endl;
+					//std::cout << "No se ha recicbido bien la sala que se quiere jugar." << std::endl;
 					break;
 				}
 				if (gamesProxy.size() == 0)
@@ -355,7 +382,7 @@ void ServerReceive()
 			}
 			case PROTOCOLO::STARTGAMEACCEPTED:
 			{	
-				std::cout << "aqui 1" << std::endl;
+				//std::cout << "aqui 1" << std::endl;
 				mutex.lock();
 				if (playersConnecteds[getId(adress, port)].Critic_Message.count(PROTOCOLO::STARTGAME) > 0)
 				{
@@ -371,7 +398,26 @@ void ServerReceive()
 				playersConnecteds[getId(adress, port)].Regular_Message.insert({ PROTOCOLO::MOVEMENT, Mensaje(currentId, pack)});
 				mutex.unlock();
 
-				//std::cout << "ID aAcumulado : " << currentId;
+				////std::cout << "ID aAcumulado : " << currentId;
+				break;
+			}
+			case PROTOCOLO::ROOMCHANGE:
+			{
+				pack >> auxIdToRemovePack;
+				for (int i = 0; i < playersConnecteds.size(); i++) 
+				{
+					std::multimap<PROTOCOLO, Mensaje>::iterator it = playersConnecteds[i].Critic_Message.begin();
+					while (it != playersConnecteds[i].Critic_Message.end()) 
+					{
+						// Remove elements while iterating
+						if (it->second.id == auxIdToRemovePack) 
+						{
+							it->second.id = -1;
+						}
+						else
+							it++;
+					}
+				}
 				break;
 			}
 			default:
@@ -380,10 +426,10 @@ void ServerReceive()
 		}
 		else if(status != sf::Socket::Done)
 		{
-			//std::cout << "No he recibido nada" << std::endl;
+			////std::cout << "No he recibido nada" << std::endl;
 		}
 	}
-	//std::cout << "fuga" << std::endl;
+	////std::cout << "fuga" << std::endl;
 }
 
 //THREAD PAQUETES NORMALES
@@ -406,9 +452,10 @@ void SendRegularPack()
 	float posX[5];
 	float posY[5];
 	bool OKMovement = false;
+	bool changeRoom = false;
 
-	//std::cout << "Adress: " << adress << std::endl;
-	//std::cout << "Port: " << port << std::endl;
+	////std::cout << "Adress: " << adress << std::endl;
+	////std::cout << "Port: " << port << std::endl;
 
 	sf::Packet auxPacket;
 	int packetidint;
@@ -433,54 +480,54 @@ void SendRegularPack()
 			{
 				auxProtocolo = PROTOCOLO::NONEPROTOCOLO;
 				aux = 0;
-				//std::cout << " Jugador nº: " << iterador << std::endl;
+				////std::cout << " Jugador nº: " << iterador << std::endl;
 				if (aux < playersConnecteds[iterador].Regular_Message.count(PROTOCOLO::HELLO))
 				{
 					aux = playersConnecteds[iterador].Regular_Message.count(PROTOCOLO::HELLO);
 					auxProtocolo = PROTOCOLO::HELLO;
-					//std::cout << "0" << std::endl;
+					////std::cout << "0" << std::endl;
 				}
 				if (aux < playersConnecteds[iterador].Regular_Message.count(PROTOCOLO::LOGIN))
 				{
 					aux = playersConnecteds[iterador].Regular_Message.count(PROTOCOLO::LOGIN);
 					auxProtocolo = PROTOCOLO::LOGIN;
-					std::cout << "1" << std::endl;
+					//std::cout << "1" << std::endl;
 				}
 				if (aux < playersConnecteds[iterador].Regular_Message.count(PROTOCOLO::REGISTER))
 				{
 					aux = playersConnecteds[iterador].Regular_Message.count(PROTOCOLO::REGISTER);
 					auxProtocolo = PROTOCOLO::REGISTER;
-					std::cout << "2" << std::endl;
+					//std::cout << "2" << std::endl;
 				}
-				if (aux < playersConnecteds[iterador].Regular_Message.count(PROTOCOLO::ROOMCHANGE))
+				/*if (aux < playersConnecteds[iterador].Regular_Message.count(PROTOCOLO::ROOMCHANGE))
 				{
 					aux = playersConnecteds[iterador].Regular_Message.count(PROTOCOLO::ROOMCHANGE);
 					auxProtocolo = PROTOCOLO::ROOMCHANGE;
-					std::cout << "3" << std::endl;
-				}
+					//std::cout << "3" << std::endl;
+				}*/
 				if (aux < playersConnecteds[iterador].Regular_Message.count(PROTOCOLO::DISCONECTED))
 				{
 					aux = playersConnecteds[iterador].Regular_Message.count(PROTOCOLO::DISCONECTED);
 					auxProtocolo = PROTOCOLO::DISCONECTED;
-					std::cout << "4" << std::endl;
+					//std::cout << "4" << std::endl;
 				}
 				if (aux < playersConnecteds[iterador].Regular_Message.count(PROTOCOLO::WANTPLAY))
 				{
 					aux = playersConnecteds[iterador].Regular_Message.count(PROTOCOLO::WANTPLAY);
 					auxProtocolo = PROTOCOLO::WANTPLAY;
-					std::cout << "5" << std::endl;
+					//std::cout << "5" << std::endl;
 				}
 				if (aux < playersConnecteds[iterador].Regular_Message.count(PROTOCOLO::MOVEMENT))
 				{
 					aux = playersConnecteds[iterador].Regular_Message.count(PROTOCOLO::MOVEMENT);
 					auxProtocolo = PROTOCOLO::MOVEMENT;
-					//std::cout << "6" << std::endl;
+					////std::cout << "6" << std::endl;
 				}
 				if (aux < playersConnecteds[iterador].Regular_Message.count(PROTOCOLO::TEAMPOSITION))
 				{
 					aux = playersConnecteds[iterador].Regular_Message.count(PROTOCOLO::TEAMPOSITION);
 					auxProtocolo = PROTOCOLO::TEAMPOSITION;
-					//std::cout << "6" << std::endl;
+					////std::cout << "6" << std::endl;
 				}
 
 				switch (auxProtocolo)
@@ -488,7 +535,7 @@ void SendRegularPack()
 					case HELLO:
 					{
 						/////// ----------- CONTESTAMOS AL MENSAJE HELLO ------------- ///////
-						std::cout << "CONTESTANDO AL HELLO\n";
+						//std::cout << "CONTESTANDO AL HELLO\n";
 						auxPacket.clear();
 						auxPacket << PROTOCOLO::WELCOME;
 						auxPacket << playersConnecteds[iterador].id;
@@ -502,7 +549,7 @@ void SendRegularPack()
 					}
 					case REGISTER:
 					{
-						std::cout << "CONTESTANDO AL SIGN UP\n";
+						//std::cout << "CONTESTANDO AL SIGN UP\n";
 
 						auxPacket = playersConnecteds[iterador].Regular_Message.find(auxProtocolo)->second.pack;
 
@@ -522,13 +569,13 @@ void SendRegularPack()
 							SQLSkin = std::atoi(skin.c_str());
 
 							//COMPROVACION
-							std::cout << "Register with User:		" << username << std::endl;
-							std::cout << "Register with Password:	" << password << std::endl;
-							std::cout << "Register with Skin:	" << skin << std::endl;
+							//std::cout << "Register with User:		" << username << std::endl;
+							//std::cout << "Register with Password:	" << password << std::endl;
+							//std::cout << "Register with Skin:	" << skin << std::endl;
 
 							//CONSULTA 
 							YouCanSignUp = !BaseDatos->CheckUser(SQLusername);
-							std::cout << "El usuario puede registrarse? " << YouCanSignUp << std::endl;
+							//std::cout << "El usuario puede registrarse? " << YouCanSignUp << std::endl;
 
 							if (YouCanSignUp)
 							{
@@ -541,9 +588,7 @@ void SendRegularPack()
 										playersConnecteds[i].userName = username;
 										playersConnecteds[i].skin = SQLSkin;
 
-										std::cout << "EL usuario con id: " << playersConnecteds[i].id
-											<< " \nUser: " << playersConnecteds[i].userName
-											<< " \nSkin: " << playersConnecteds[i].skin << std::endl;
+										//std::cout << "EL usuario con id: " << playersConnecteds[i].id	<< " \nUser: " << playersConnecteds[i].userName	<< " \nSkin: " << playersConnecteds[i].skin << std::endl;
 
 									}
 								}
@@ -551,7 +596,7 @@ void SendRegularPack()
 								//COGEMOS MONSTRUOS MATADOS DEL USUARIO
 								KilledMonsters = BaseDatos->getMonstersKilledPlayer(SQLusername, SQLpassword);
 								playersConnecteds[iterador].id_cuenta = BaseDatos->getIdCuenta(SQLusername, SQLpassword);
-								std::cout << "Enemigos matados: " << KilledMonsters << std::endl;
+								//std::cout << "Enemigos matados: " << KilledMonsters << std::endl;
 								playersConnecteds[iterador].NumEnemigos = KilledMonsters;
 							}
 						}
@@ -568,7 +613,7 @@ void SendRegularPack()
 					}
 					case LOGIN:
 					{
-						std::cout << "CONTESTANDO AL LOG IN\n";
+						//std::cout << "CONTESTANDO AL LOG IN\n";
 
 						auxPacket = playersConnecteds[iterador].Regular_Message.find(auxProtocolo)->second.pack;
 
@@ -580,29 +625,27 @@ void SendRegularPack()
 						SQLusername = username.c_str();
 						SQLpassword = password.c_str();
 
-						std::cout << "La ID_Cuenta es:  " << playersConnecteds[iterador].id_cuenta << std::endl;
+						//std::cout << "La ID_Cuenta es:  " << playersConnecteds[iterador].id_cuenta << std::endl;
 
-						std::cout << "He recibido un intento de Login." << std::endl;
+						//std::cout << "He recibido un intento de Login." << std::endl;
 						//COMPROVACION
 						for (int i = 0; i < playersConnecteds.size(); i++)
 						{
 							if (playersConnecteds[i].id == auxId)
 							{
-								std::cout	<< "El usuario con id: " << auxId
-											<< "\nHa enviado el paquete con id: " << auxIdPacket
-											<< "\nLog in User: " << username << std::endl;
-								std::cout	<< "Log in Password:	" << password << std::endl;
+								//std::cout	<< "El usuario con id: " << auxId<< "\nHa enviado el paquete con id: " << auxIdPacket<< "\nLog in User: " << username << std::endl;
+								//std::cout	<< "Log in Password:	" << password << std::endl;
 
 								//CONSULTA 
 								YouCanLogin = BaseDatos->LoginUser(SQLusername, SQLpassword);
-								std::cout << "El usuario puede entrar? " << YouCanLogin << std::endl;
+								//std::cout << "El usuario puede entrar? " << YouCanLogin << std::endl;
 
 								if (YouCanLogin)
 								{
 									//COGEMOS MONSTRUOS MATADOS DEL USUARIO
 									KilledMonsters = BaseDatos->getMonstersKilledPlayer(SQLusername, SQLpassword);
 									playersConnecteds[iterador].id_cuenta = BaseDatos->getIdCuenta(SQLusername, SQLpassword);
-									std::cout << "Enemigos matados: " << KilledMonsters << std::endl;
+									//std::cout << "Enemigos matados: " << KilledMonsters << std::endl;
 									playersConnecteds[iterador].NumEnemigos = KilledMonsters;
 									playersConnecteds[i].skin = BaseDatos->TakeSkin(SQLusername, SQLpassword);
 								}
@@ -615,7 +658,7 @@ void SendRegularPack()
 							}
 							else
 							{
-								std::cout << "he recibido el intento de login pero no coincie con ningun usuario " << std::endl;
+								//std::cout << "he recibido el intento de login pero no coincie con ningun usuario " << std::endl;
 							}
 						}					
 							playersConnecteds[iterador].Regular_Message.erase(auxProtocolo);
@@ -623,7 +666,7 @@ void SendRegularPack()
 					}
 					case WANTPLAY:
 					{
-						std::cout << "CONTESTANDO A WANT PLAY\n";
+						//std::cout << "CONTESTANDO A WANT PLAY\n";
 						auxPacket.clear();
 						auxPacket << PROTOCOLO::WANTPLAYACCEPTED;
 						socket.send(auxPacket, playersConnecteds[iterador].IP_Adress, playersConnecteds[iterador].port);
@@ -635,11 +678,7 @@ void SendRegularPack()
 					}
 					case STARTGAME:
 					{
-						std::cout << "CONTESTANDO A WANTPLAY\n";
-						break;
-					}
-					case ROOMCHANGE:
-					{
+						//std::cout << "CONTESTANDO A WANTPLAY\n";
 						break;
 					}
 					case DISCONECTED:
@@ -655,12 +694,67 @@ void SendRegularPack()
 							auxPacket >> posY[i];
 
 							OKMovement = true;
-							if (OKMovement)
+							//Comprobamos Door////////////////////////////////////////////////////////////////
+							switch (playersConnecteds[iterador].idSalaActual)
 							{
-
+							case 0: 
+							{
+								//RIGHT
+								if (changeRoom = hoverRightDoor(posX[i], posY[i]))
+									aux = 1;
+								//DOWN
+								if (changeRoom = hoverDownDoor(posX[i], posY[i]))
+									aux = 2;
+								break;
+							}
+							case 1:
+							{
+								//Left
+								break;
+							}
+							case 2:
+							{
+								//RIGHT
+								if (changeRoom = hoverRightDoor(posX[i], posY[i]))
+									aux = 3;
+								//UP
+								break;
+							}
+							case 3:
+							{
+								//Left
+								break;
+							}
+							default:
+								break;
 							}
 						}
-						if (OKMovement)
+						if (changeRoom)
+						{
+							auxPacket.clear();
+							auxPacket << PROTOCOLO::ROOMCHANGE;
+							auxPacket << playersConnecteds[iterador].id;
+							auxPacket << aux;
+							for (int i = 0; i < gamesProxy.size(); i++)
+							{
+								if (gamesProxy[i].id == playersConnecteds[iterador].idPartidaActual)
+								{
+									//Recorremos el vector de jugadores introduciendo el packet que deberemos enviar
+									for (int j = 0; j < gamesProxy[i].players.size(); j++)
+									{		
+										mutex.lock();
+										playersConnecteds[gamesProxy[i].players[j].id - 1].Critic_Message.insert({ PROTOCOLO::ROOMCHANGE, Mensaje(playersConnecteds[iterador].id,auxPacket) });
+										mutex.unlock();
+									}
+
+								}
+							}
+
+							std::multimap<PROTOCOLO, Mensaje>::iterator it2 = playersConnecteds[iterador].Regular_Message.find(PROTOCOLO::MOVEMENT);
+							playersConnecteds[iterador].Regular_Message.erase(it2);
+							changeRoom = false;
+						}
+						else if (OKMovement)
 						{
 
 							mutex.lock();
@@ -715,31 +809,31 @@ void SendRegularPack()
 							}
 							else
 							{
-								std::cout << "No pude enviar el movimiento acumulado" << std::endl;
+								//std::cout << "No pude enviar el movimiento acumulado" << std::endl;
 							}
 						}
 						break;
 					}
 					case TEAMPOSITION:
 					{
-						//std::cout << "----------------------------------------------" << std::endl;
+						////std::cout << "----------------------------------------------" << std::endl;
 						auxPacket = playersConnecteds[iterador].Regular_Message.find(PROTOCOLO::TEAMPOSITION)->second.pack;
 						status = socket.send(auxPacket, playersConnecteds[iterador].IP_Adress, playersConnecteds[iterador].port);
 						if (status == sf::Socket::Done)
 						{
-							std::cout << "Enviado movimiento de un jugador a otro" << std::endl;
+							//std::cout << "Enviado movimiento de un jugador a otro" << std::endl;
 							std::multimap<PROTOCOLO, Mensaje>::iterator itToRemove = playersConnecteds[iterador].Regular_Message.find(PROTOCOLO::TEAMPOSITION);
 							playersConnecteds[iterador].Regular_Message.erase(itToRemove);
 						}
 						else
 						{
-							std::cout << "No pude enviar el movimiento acumulado" << std::endl;
+							//std::cout << "No pude enviar el movimiento acumulado" << std::endl;
 						}
 						break; 
 					}
 					default:
 					{
-						std::cout << "BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB\n";
+						//std::cout << "BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB\n";
 						break;
 					}
 				}
@@ -779,7 +873,7 @@ void SendRegularPack()
 			
 				if (playersWaitingMap1.size() >= 2)
 				{
-					std::cout << "EMPIEZA LA PARTIDA" << std::endl;
+					//std::cout << "EMPIEZA LA PARTIDA" << std::endl;
 					gamesProxy.push_back({games,1,auxPlayers,auxEnemy});
 					games++;
 					//rellenar Players
@@ -794,7 +888,7 @@ void SendRegularPack()
 								playersConnecteds[j].idPartidaActual = games - 1;
 								//playersWaitingMap1.erase(playersWaitingMap1.begin());
 								idPlayers[i] = j;
-								std::cout << "UNA VEZ!!!!!!!!!!!!!!!!!!!!!!!!" <<j<< std::endl;
+								//std::cout << "UNA VEZ!!!!!!!!!!!!!!!!!!!!!!!!" <<j<< std::endl;
 							}							
 						}
 						
@@ -835,7 +929,7 @@ void SendRegularPack()
 				if (playersWaitingMap2.size() >= 2)
 				{
 					//crear partida y push
-					std::cout << "EMPIEZA LA PARTIDA" << std::endl;
+					//std::cout << "EMPIEZA LA PARTIDA" << std::endl;
 					gamesProxy.push_back({ games,2,auxPlayers,auxEnemy });
 					games++;
 						//rellenar Players
@@ -852,7 +946,7 @@ void SendRegularPack()
 				if (playersWaitingMap3.size() >= 4)
 				{
 					//crear partida y push
-					std::cout << "EMPIEZA LA PARTIDA" << std::endl;
+					//std::cout << "EMPIEZA LA PARTIDA" << std::endl;
 					gamesProxy.push_back({ games,3,auxPlayers,auxEnemy });
 					games++;
 						//rellenar Players
@@ -888,8 +982,8 @@ void SendCriticPack()
 	//KILLED MONSTERS
 	int KilledMonsters;
 
-	//std::cout << "Adress: " << adress << std::endl;
-	//std::cout << "Port: " << port << std::endl;
+	////std::cout << "Adress: " << adress << std::endl;
+	////std::cout << "Port: " << port << std::endl;
 
 	sf::Packet auxPacket;
 
@@ -934,7 +1028,7 @@ void SendCriticPack()
 					if (timeInSeconds > 2.5) 
 					{
 						startTime = clock();
-						std::cout << "ENVIANDO EL CRITICO DE START GAME. \n";
+						//std::cout << "ENVIANDO EL CRITICO DE START GAME. \n";
 						mutex.lock();
 						if(playersConnecteds[iterador].Critic_Message.find(PROTOCOLO::STARTGAME)->second.id != -1)
 						{
@@ -942,7 +1036,7 @@ void SendCriticPack()
 						}
 						else
 						{
-							std::cout << "Borrando el StartGame del id: " << (getId(playersConnecteds[iterador].IP_Adress, playersConnecteds[iterador].port) + 1) << std::endl;
+							//std::cout << "Borrando el StartGame del id: " << (getId(playersConnecteds[iterador].IP_Adress, playersConnecteds[iterador].port) + 1) << std::endl;
 							playersConnecteds[iterador].Critic_Message.erase(PROTOCOLO::STARTGAME);
 						}
 						mutex.unlock();
@@ -951,19 +1045,31 @@ void SendCriticPack()
 				}
 				case ROOMCHANGE:
 				{
-					std::cout << "ENVIANDO EL CRITICO DE ROOM CHANGE. \n";
-					socket.send(playersConnecteds[iterador].Critic_Message.find(PROTOCOLO::STARTGAME)->second.pack, playersConnecteds[iterador].IP_Adress, playersConnecteds[iterador].port);
+					if (timeInSeconds > 1)
+					{
+						startTime = clock();
+						if (playersConnecteds[iterador].Critic_Message.find(PROTOCOLO::ROOMCHANGE)->second.id != -1)
+						{
+							//std::cout << "ENVIANDO EL CRITICO DE ROOM CHANGE. \n";
+							socket.send(playersConnecteds[iterador].Critic_Message.find(PROTOCOLO::ROOMCHANGE)->second.pack, playersConnecteds[iterador].IP_Adress, playersConnecteds[iterador].port);
+						}
+						else
+						{
+							playersConnecteds[iterador].Critic_Message.erase(PROTOCOLO::ROOMCHANGE);
+							std::cout << "Ha borrado un ROOMCHANGE CRITICO" << std::endl;
+						}
+					}
 					break;
 				}
 				case DISCONECTED:
 				{
-					std::cout << "ENVIANDO EL CRITICO DE DISCONECTED. \n";
+					////std::cout << "ENVIANDO EL CRITICO DE DISCONECTED. \n";
 					socket.send(playersConnecteds[iterador].Critic_Message.find(PROTOCOLO::STARTGAME)->second.pack, playersConnecteds[iterador].IP_Adress, playersConnecteds[iterador].port);
 					break;
 				}
 				default:
 				{
-					//std::cout << "BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB\n";
+					////std::cout << "BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB\n";
 					break;
 				}
 				}
@@ -999,7 +1105,7 @@ void serverMain()
 	}
 	else
 	{
-		std::cout << "Se hace bind bien con el puerto" << PORT << std::endl;
+		//std::cout << "Se hace bind bien con el puerto" << PORT << std::endl;
 	}
 
 	//THREAD RECEIVE
@@ -1028,6 +1134,7 @@ void ClientReceive()
 	sf::Packet packRecieve;
 	PlayerProxy teamMateAux;
 	int auxint=-1;
+	int auxSala = -1;
 
 	
 	while (true)
@@ -1041,11 +1148,11 @@ void ClientReceive()
 		//mutex.unlock();
 		if (status != sf::Socket::Done)
 		{
-			//std::cout << "No se ha podido recibir el mensaje" << std::endl;
+			////std::cout << "No se ha podido recibir el mensaje" << std::endl;
 		}
 		else
 		{
-			//std::cout << "Se ha recibido el mensaje" << std::endl;
+			////std::cout << "Se ha recibido el mensaje" << std::endl;
 			//RECOGEMOS VARIABLES
 			int auxOrder;
 			packRecieve >> auxOrder;
@@ -1056,14 +1163,15 @@ void ClientReceive()
 			{
 			case PROTOCOLO::WELCOME:
 				packRecieve >> proxy.id;
+				std::cout << proxy.id << "  aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" << std::endl;
 				helloMessage = true;
-				std::cout << "El servidor te da la bienvenida con el siguiente id: " << proxy.id << std::endl;
+				//std::cout << "El servidor te da la bienvenida con el siguiente id: " << proxy.id << std::endl;
 				break;
 			case PROTOCOLO::LOGINACCEPTED:
 
-				packRecieve >> proxy.id;
+				packRecieve >> auxint;
 				packRecieve >> YouCanLogin;
-				std::cout << "Me puedo conectar: " << YouCanLogin << std::endl;
+				//std::cout << "Me puedo conectar: " << YouCanLogin << std::endl;
 				if (YouCanLogin)
 				{					
 					packRecieve >> proxy.skin;
@@ -1078,9 +1186,9 @@ void ClientReceive()
 				}
 				break;
 			case PROTOCOLO::REGISTERACCEPTED:
-				packRecieve >> proxy.id;
+				packRecieve >> auxint;
 				packRecieve >> YouCanSignUp;
-				std::cout << "Me puedo registrar: " << YouCanSignUp << std::endl;
+				//std::cout << "Me puedo registrar: " << YouCanSignUp << std::endl;
 				if (YouCanSignUp)
 				{			
 					currentScene->finishSending = true;
@@ -1091,7 +1199,6 @@ void ClientReceive()
 					currentScene->finishSending = true;
 					sceneState = TypeScene::GOTO_SIGN_UP;
 				}
-
 				break;
 			case PROTOCOLO::WANTPLAYACCEPTED:
 				currentScene->finishSending = true;
@@ -1111,7 +1218,7 @@ void ClientReceive()
 					teamMateAux.idSalaActual = 0;
 					myGame.players.push_back(teamMateAux);
 
-					std::cout << "id :" << teamMateAux.id << " " << teamMateAux.posX << " " << teamMateAux.posY << std::endl;
+					//std::cout << "id :" << teamMateAux.id << " " << teamMateAux.posX << " " << teamMateAux.posY << std::endl;
 
 					packRecieve >> teamMateAux.id;
 					packRecieve >> teamMateAux.posX;
@@ -1125,7 +1232,7 @@ void ClientReceive()
 					currentScene->mySala = 0;
 					teamMateAux.idSalaActual = 0;
 					myGame.players.push_back(teamMateAux);
-					std::cout << "id :" << teamMateAux.id << " " << teamMateAux.posX << " " << teamMateAux.posY << std::endl;
+					//std::cout << "id :" << teamMateAux.id << " " << teamMateAux.posX << " " << teamMateAux.posY << std::endl;
 					posX = teamMateAux.posX;
 					posY = teamMateAux.posY;
 				}
@@ -1135,7 +1242,7 @@ void ClientReceive()
 				if (socket.send(packRecieve, proxy.IP_Adress, proxy.port) == sf::Socket::Done)
 				{					
 					//currentScene->CloseWindow();
-					std::cout << "Empieza partida " << std::endl;
+					//std::cout << "Empieza partida " << std::endl;
 					currentScene->finishSending = true;
 					sceneState = TypeScene::GOTO_PLAY;
 				}
@@ -1166,6 +1273,30 @@ void ClientReceive()
 				//
 				//
 				//////////////////////////////
+				break;
+			}
+			case PROTOCOLO::ROOMCHANGE:
+			{
+				//idjugador sala
+				packRecieve >> auxint;
+				std::cout << "id that changed :" <<auxint<< "myId :"<< proxy.id << std::endl;
+				packRecieve >> auxSala;
+				if (proxy.id == auxint)
+				{
+					currentScene->currentBackground = auxSala;
+					currentScene->mySala = auxSala;
+					proxy.idSalaActual = auxSala;
+				}				
+				else 
+				{
+					currentScene->partnerSala = auxSala;
+					std::cout << "ME CAGO EN TO LOKO" << std::endl;
+				}
+				//enviamos para que pare de enviar
+				packRecieve.clear();
+				packRecieve << PROTOCOLO::ROOMCHANGE;
+				packRecieve << auxint;
+				socket.send(packRecieve,IP_CLASE,PORT);
 				break;
 			}
 			default:
@@ -1294,19 +1425,19 @@ void clienteMain()
 			currentScene->me = proxy;
 			break;
 		case GOTO_MENU:
-			std::cout << "Nos vamos a la escena del Menu" << std::endl;
+			//std::cout << "Nos vamos a la escena del Menu" << std::endl;
 			sceneState = TypeScene::MENU;
 			currentScene = new Menu(1);
 			currentScene->me = proxy;
 			break;
 		case GOTO_MAPS:
-			std::cout << "Nos vamos a la escena de Mapas" << std::endl;
+			//std::cout << "Nos vamos a la escena de Mapas" << std::endl;
 			sceneState = TypeScene::MAPS;
 			currentScene = new Maps(1, &socket);
 			currentScene->me = proxy;
 			break;
 		case GOTO_PLAY:
-			std::cout << "Nos vamos a la escena del Juego" << std::endl;
+			//std::cout << "Nos vamos a la escena del Juego" << std::endl;
 			sceneState = TypeScene::PLAY;
 			auxType = static_cast<CharacterType>(proxy.skin);
 			currentScene = myGameScene = new Game(auxType,posX,posY, &socket, partnerSkin);
@@ -1318,7 +1449,7 @@ void clienteMain()
 		}
 	}
 
-	/*std::cout << "Escoge un personaje del 1 al 8: \n" << std::endl;
+	/*//std::cout << "Escoge un personaje del 1 al 8: \n" << std::endl;
 	std::cin >> answer;
 
 	if (answer == "1")myCharacterType = 1;
