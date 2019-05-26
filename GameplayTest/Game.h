@@ -24,6 +24,8 @@ public:
 	int partnerSkin;
 	Character* myCharacter;
 
+	void DrawEnemies();
+	void AddGhots(float _posX, float _posY, int _ID, int _IDSala);
 
 private:
 	sf::Texture  bgTexture[4];

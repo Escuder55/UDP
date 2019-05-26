@@ -4,7 +4,7 @@
 #include <iostream>
 #include "Constants.h"
 #include "PlayerProxy.h"
-
+#include "Ghost.h"
 
 class Scene
 {
@@ -45,6 +45,8 @@ public:
 	//INTERPOLATION
 	void lerp(float Xinicial, float Xfinal, float Yinicial, float Yfinal, float deltaTime, int StartMovement);
 
+	// ENEMIGOS
+	std::vector<Ghost*> enemies;
 protected:
 	virtual void InputControl(sf::RenderWindow* window);
 	virtual void sendPacketCritic(sf::Packet & pack, sf::IpAddress _IP, unsigned short _port);

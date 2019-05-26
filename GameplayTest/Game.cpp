@@ -20,6 +20,13 @@ Game::Game(CharacterType myCharacterType, float _posX, float _posY, sf::UdpSocke
 	posPartnerY = _posY;
 	partnerSkin = skin;
 
+	//Ghosts Init//////////////////////
+	AddGhots((DOOR_LEFT_POS_X + 45) + 230.f, 160.f, 1, 0);
+	AddGhots((DOOR_LEFT_POS_X + 45) + 400.f, 270.f, 2, 0);
+	AddGhots((DOOR_LEFT_POS_X + 45) + 250.f, 100.f, 3, 1);
+	AddGhots((DOOR_LEFT_POS_X + 45) + 100.f, 350.f, 4, 2);
+	AddGhots((DOOR_LEFT_POS_X + 45) + 500.f, 350.f, 5, 3);
+
 	/////////////////////////////////////////////inicializamos el Character con el typo que le hayamos pasado,
 	/////////////////////////////////////////////en un futuro esta inicialización tendrá que ser con la skin que 
 	/////////////////////////////////////////////tenga el jugador en su base de datos
@@ -330,6 +337,8 @@ TypeScene Game::DrawScene()
 		}
 		}
 
+		DrawEnemies();
+
 		window.display();
 	}
 	
@@ -411,4 +420,22 @@ void Game::DrawSprites()
 	{
 		window.draw(partner);
 	}	
+}
+
+void Game::DrawEnemies()
+{
+	for (int i = 0; i < enemies.size(); i++)
+	{
+		if (enemies[i]->idSala == mySala)
+		{
+			enemies[i]->DrawGhost(&window);
+		}
+	}
+}
+
+void Game::AddGhots(float _posX, float _posY, int _ID, int _IDSala)
+{
+	Ghost *aux;
+	aux = new Ghost(_posX, _posY, _IDSala, _ID);
+	enemies.push_back(aux);
 }
