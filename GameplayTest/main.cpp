@@ -101,6 +101,11 @@ clock_t endTime;
 clock_t clockTicksTaken;
 double timeInSeconds;
 
+clock_t startTimeRoomChange;
+clock_t endTimeRoomChange;
+clock_t clockTicksTakenRoomChange;
+double timeInSecondsRoomChange;
+
 bool helloMessage = false;
 ////////puntero a la escena actual
 Scene* currentScene;
@@ -427,18 +432,20 @@ void ServerReceive()
 			case PROTOCOLO::ROOMCHANGE:
 			{
 				pack >> auxIdToRemovePack;
-				
+
+				mutex.lock();
 				std::multimap<PROTOCOLO, Mensaje>::iterator it = playersConnecteds[getId(adress, port)-1].Critic_Message.begin();
 				while (it != playersConnecteds[getId(adress, port) - 1].Critic_Message.end())
 				{
 					// Remove elements while iterating
-					if ((it->second.id == auxIdToRemovePack)  && (it->first==PROTOCOLO::ROOMCHANGE))
+					if ((it->second.id == auxIdToRemovePack) && (it->first==PROTOCOLO::ROOMCHANGE))
 					{
 						it->second.id = -1;
 					}
 					else
 						it++;
 				}
+				mutex.unlock();
 			
 				break;
 			}
@@ -1006,6 +1013,7 @@ void SendCriticPack()
 
 	//KILLED MONSTERS
 	int KilledMonsters;
+	startTimeRoomChange = clock();
 
 	////std::cout << "Adress: " << adress << std::endl;
 	////std::cout << "Port: " << port << std::endl;
@@ -1021,9 +1029,9 @@ void SendCriticPack()
 	int tonteriaCritic = 0;
 	while (true)
 	{
-		endTime = clock();
-		clockTicksTaken = endTime - startTime;
-		timeInSeconds = clockTicksTaken / (double)CLOCKS_PER_SEC;
+		endTimeRoomChange = clock();
+		clockTicksTakenRoomChange = endTimeRoomChange - startTimeRoomChange;
+		timeInSecondsRoomChange = clockTicksTakenRoomChange / (double)CLOCKS_PER_SEC;
 		if (!playersConnecteds.empty())
 		{
 			tonteriaCritic = playersConnecteds[iterador].Critic_Message.size();
@@ -1050,9 +1058,9 @@ void SendCriticPack()
 				{
 				case STARTGAME:
 				{
-					if (timeInSeconds > 2.5) 
+					if (timeInSecondsRoomChange > 2.5)
 					{
-						startTime = clock();
+						startTimeRoomChange = clock();
 						//std::cout << "ENVIANDO EL CRITICO DE START GAME. \n";
 						mutex.lock();
 						if(playersConnecteds[iterador].Critic_Message.find(PROTOCOLO::STARTGAME)->second.id != -1)
@@ -1070,17 +1078,28 @@ void SendCriticPack()
 				}
 				case ROOMCHANGE:
 				{
-					if (timeInSeconds > 1)
+					if (timeInSecondsRoomChange > 1.0f)
 					{
-						startTime = clock();
+						startTimeRoomChange = clock();
 						if (playersConnecteds[iterador].Critic_Message.find(PROTOCOLO::ROOMCHANGE)->second.id != -1)
 						{
 							//std::cout << "ENVIANDO EL CRITICO DE ROOM CHANGE. \n";
-							socket.send(playersConnecteds[iterador].Critic_Message.find(PROTOCOLO::ROOMCHANGE)->second.pack, playersConnecteds[iterador].IP_Adress, playersConnecteds[iterador].port);
+							status = socket.send(playersConnecteds[iterador].Critic_Message.find(PROTOCOLO::ROOMCHANGE)->second.pack, playersConnecteds[iterador].IP_Adress, playersConnecteds[iterador].port);
+						
+							if (status != sf::Socket::Done)
+							{
+								std::cout << "He enviado paquete critio de ROOM CHANGE" << std::endl;
+							}
+							else
+							{
+								std::cout << "No he podido enviar el paquete critio de ROOM CHANGE" << std::endl;
+							}
+						
 						}
 						else
 						{
-							playersConnecteds[iterador].Critic_Message.erase(PROTOCOLO::ROOMCHANGE);
+							std::multimap<PROTOCOLO, Mensaje>::iterator it = playersConnecteds[iterador].Critic_Message.find(PROTOCOLO::ROOMCHANGE);
+							playersConnecteds[iterador].Critic_Message.erase(it);
 							std::cout << "Ha borrado un ROOMCHANGE CRITICO" << std::endl;
 						}
 					}
