@@ -13,6 +13,8 @@ public:
 	unsigned short port;
 	int id;
 	int id_cuenta;
+	int id_sesion;
+	int id_partida;
 	std::string userName;
 	std::string password;
 	int skin;

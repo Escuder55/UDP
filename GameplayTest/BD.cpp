@@ -683,6 +683,59 @@ int BD::getIdCuenta(sql::SQLString PUsername, sql::SQLString PPassword)
 
 }
 
+void BD::InicioSesion(int cuenta)
+{
+	prep_stmt = conn->prepareStatement("INSERT INTO sesiones(cuenta) VALUES(?)");
+	prep_stmt->setInt(1, cuenta);
+	res = prep_stmt->executeQuery();
+
+	delete res;
+	delete prep_stmt;
+}
+
+int BD::getSesionOfId(int cuenta)
+{
+	prep_stmt = conn->prepareStatement("SELECT id_sesion from sesiones WHERE cuenta = ? ORDER BY tiempoInicial DESC LIMIT 1");
+	prep_stmt->setInt(1, cuenta);
+	res = prep_stmt->executeQuery();
+
+	while (res->next())
+	{
+		return res->getInt("id_sesion");
+	}
+
+	delete res;
+	delete prep_stmt;
+}
+
+void BD::InicioPartida(int sesion)
+{
+	prep_stmt = conn->prepareStatement("INSERT INTO partida(monstruos_matados, sesion) VALUES(?, ?)");
+	prep_stmt->setInt(1, sesion);
+	prep_stmt->setInt(2, 0);
+	res = prep_stmt->executeQuery();
+
+	delete res;
+	delete prep_stmt;
+}
+
+int BD::getPartidaActual(int sesion)
+{
+	prep_stmt = conn->prepareStatement("SELECT id_partida from partida WHERE sesion = ? ORDER BY tiempoInicial DESC LIMIT 1");
+	prep_stmt->setInt(1, sesion);
+	res = prep_stmt->executeQuery();
+
+	while (res->next())
+	{
+		return res->getInt("id_partida");
+	}
+
+	delete res;
+	delete prep_stmt;
+
+	return 0;
+}
+
 BD::~BD()
 {
 	conn->close();

@@ -34,7 +34,10 @@ public:
 	int TakeSkin(sql::SQLString user, sql::SQLString password);
 	int getMonstersKilledPlayer(sql::SQLString PUsername, sql::SQLString PPassword);
 	int getIdCuenta(sql::SQLString PUsername, sql::SQLString PPassword);
-
+	void InicioSesion(int cuenta);
+	int getSesionOfId(int cuenta);
+	void InicioPartida(int sesion);
+	int getPartidaActual(int sesion);
 	//MAPA
 	MapaGame getMap1();
 	MapaGame getMap2();

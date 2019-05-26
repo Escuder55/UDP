@@ -636,6 +636,9 @@ void SendRegularPack()
 									//std::cout << "Enemigos matados: " << KilledMonsters << std::endl;
 									playersConnecteds[iterador].NumEnemigos = KilledMonsters;
 									playersConnecteds[i].skin = BaseDatos->TakeSkin(SQLusername, SQLpassword);
+									//NUEVA SESION
+									BaseDatos->InicioSesion(playersConnecteds[iterador].id_cuenta);
+									playersConnecteds[iterador].id_sesion = BaseDatos->getSesionOfId(playersConnecteds[iterador].id_cuenta);
 								}
 
 								//SEND TO CLIENT
@@ -986,37 +989,18 @@ void SendCriticPack()
 						}
 						else
 						{
-							//std::cout << "Borrando el StartGame del id: " << (getId(playersConnecteds[iterador].IP_Adress, playersConnecteds[iterador].port) + 1) << std::endl;
 							playersConnecteds[iterador].Critic_Message.erase(PROTOCOLO::STARTGAME);
 						}
 						mutex.unlock();
+						//Insert nueva partida
+						BaseDatos->InicioPartida(playersConnecteds[iterador].id_sesion);
+						//playersConnecteds[iterador].id_partida = BaseDatos->getPartidaActual(playersConnecteds[iterador].id_sesion);
 					}
 					break;
 				}
 				case ROOMCHANGE:
 				{
-					/*if (timeInSecondsRoomChange > 1.0f)
-					{
-						startTimeRoomChange = clock();
-						std::multimap<PROTOCOLO, Mensaje>::iterator it = playersConnecteds[iterador].Critic_Message.find(PROTOCOLO::ROOMCHANGE);
-						if (it->second.id != -1)
-						{
-							//std::cout << "ENVIANDO EL CRITICO DE ROOM CHANGE. \n";
-							status = socket.send(it->second.pack, playersConnecteds[iterador].IP_Adress, playersConnecteds[iterador].port);
-							if (status != sf::Socket::Done)
-							{
-								std::cout << "He enviado paquete critio de ROOM CHANGE" << std::endl;
-							}
-							else
-							{
-								std::cout << "No he podido enviar el paquete critio de ROOM CHANGE" << std::endl;
-							}						
-						}
-						else
-						{
-							playersConnecteds[iterador].Critic_Message.erase(it);
-							std::cout << "Ha borrado un ROOMCHANGE CRITICO" << std::endl;						}
-					}*/
+					
 					break;
 				}
 				case DISCONECTED:
