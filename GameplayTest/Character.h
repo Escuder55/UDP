@@ -26,12 +26,15 @@ public:
 	void UpdateCharacterPosition(sf::Keyboard::Key _keyPressed, bool _pressed);
 	void cleanAccumMovement(int idConfirmed);
 
-	//COLLISIONS DOORS
-	bool hoverRightDoor();
-	bool hoverDownDoor();
-
 	//CAMBIAMOS POSICION DEL CARACTER
 	void CharacterChangeRoom(float posX, float posY);
+
+	//BLOCK paredes externas
+	bool collisionLeftAll();
+	bool collisionDownAll();
+	bool collisionRightAll();
+	bool collisionUpAll();
+
 
 private:
 	sf::Texture cTexture;
@@ -41,6 +44,9 @@ private:
 	sf::Vector2f characterPosition;
 
 	std::list<Mensaje> accumMove;
+
+	//SALA ACTUAL
+	int salaActual;
 	
 	//Para acumulados
 	int idAccum;

@@ -1328,7 +1328,6 @@ void ClientReceive()
 							}
 							else if (proxy.idSalaActual == 2)
 							{
-								std::cout << "ESTOY ENTRANDO Y DEBO CAMBIAR LA POSICION DEL JUGADOR" << std::endl;
 								myGameScene->myCharacter->CharacterChangeRoom(SCREEN_WIDTH / 2, 100.f);
 							}
 							break;

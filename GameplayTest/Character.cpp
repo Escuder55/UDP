@@ -67,6 +67,10 @@ Character::Character(CharacterType _myCharacter, sf::UdpSocket *sock)
 	////////////inicializamos la velocidad del personaje
 	speed = 10;
 	InitSprites();
+
+
+	//SALA INICIAL
+	salaActual = 0;
 }
 
 
@@ -247,32 +251,44 @@ void Character::UpdateCharacterPosition(sf::Keyboard::Key _keyPressed, bool _pre
 		
 		break;
 	case UP:
+		if (collisionUpAll())
+		{
 			animationCounterY = 3;
 			characterPosition.y -= speed;
 			characterSprite.setPosition(characterPosition);
 			enviarMove = true;
+		}
 		break;
 
 	case RIGHT:
+		if (collisionRightAll())
+		{
 			animationCounterY = 2;
 			characterPosition.x += speed;
 			characterSprite.setPosition(characterPosition);
 			enviarMove = true;
+		}
 		break;
 
 	case DOWN:
+		if (collisionDownAll())
+		{
 			animationCounterY = 0;
 			characterPosition.y += speed;
 			characterSprite.setPosition(characterPosition);
 			enviarMove = true;
+		}
 		break;
 
 	case LEFT:
+		if (!collisionLeftAll())
+		{
 			animationCounterY = 1;
 			characterPosition.x -= speed;
 			characterSprite.setPosition(characterPosition);
 			enviarMove = true;
-		break;
+			break;
+		}
 
 	default:
 		break;
@@ -333,34 +349,57 @@ void Character::cleanAccumMovement(int idConfirmed)
 	}
 }
 
-
-bool Character::hoverRightDoor()
-{
-	if ((characterSprite.getPosition().x + characterSprite.getTextureRect().width) > DOOR_RIGHT_POS_X)
-	{		
-		if ((characterSprite.getPosition().y > (DOOR_RIGHT_POS_Y - 45)) && (characterSprite.getPosition().y < (DOOR_RIGHT_POS_Y)))
-		{
-			return true;
-		}
-	}
-	return false;
-}
-
-bool Character::hoverDownDoor()
-{
-	if ((characterSprite.getPosition().x < DOOR_DOWN_POS_X + 40) && (characterSprite.getPosition().x > DOOR_DOWN_POS_X - 35))
-	{
-		if (((characterSprite.getPosition().y + characterSprite.getTextureRect().height) > DOOR_DOWN_POS_Y))
-		{
-			return true;
-		}
-	}
-	return false;
-}
-
 void Character::CharacterChangeRoom(float posX, float posY)
 {
 	characterSprite.setPosition(posX, posY);
 	characterPosition.x = posX;
 	characterPosition.y = posY;
+}
+
+bool Character::collisionLeftAll()
+{
+	if (characterSprite.getPosition().x < DOOR_LEFT_POS_X + 45)
+	{
+		if ((characterSprite.getPosition().y > 0))
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+bool Character::collisionDownAll()
+{
+	if ((characterSprite.getPosition().x > 0))
+	{
+		if (((characterSprite.getPosition().y + characterSprite.getTextureRect().height) < DOOR_DOWN_POS_Y))
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+bool Character::collisionRightAll()
+{
+	if (characterSprite.getPosition().x < DOOR_RIGHT_POS_X - 35)
+	{
+		if (characterSprite.getPosition().y > 0)
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+bool Character::collisionUpAll()
+{
+	if ((characterSprite.getPosition().x > 0))
+	{
+		if (((characterSprite.getPosition().y - 30) > DOOR_UP_POS_Y))
+		{
+			return true;
+		}
+	}
+	return false;
 }
