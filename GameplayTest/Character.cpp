@@ -335,13 +335,13 @@ void Character::UpdateCharacterPosition(sf::Keyboard::Key _keyPressed, bool _pre
 
 void Character::cleanAccumMovement(int idConfirmed)
 {
-	std::cout << "ID packete :" << idConfirmed << std::endl;
+//	std::cout << "ID packete :" << idConfirmed << std::endl;
 	
 	std::list<Mensaje>::iterator it = accumMove.begin();
 	while (it != accumMove.end()) {
 		// Remove elements while iterating
 		if (it->id <= idConfirmed) {
-			std::cout << "Se borra el que tiene paqueteID :" << it->id << std::endl;
+			//std::cout << "Se borra el que tiene paqueteID :" << it->id << std::endl;
 			it = accumMove.erase(it);
 		}
 		else

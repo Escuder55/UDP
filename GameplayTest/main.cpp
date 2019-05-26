@@ -427,20 +427,19 @@ void ServerReceive()
 			case PROTOCOLO::ROOMCHANGE:
 			{
 				pack >> auxIdToRemovePack;
-				for (int i = 0; i < playersConnecteds.size(); i++) 
+				
+				std::multimap<PROTOCOLO, Mensaje>::iterator it = playersConnecteds[getId(adress, port)-1].Critic_Message.begin();
+				while (it != playersConnecteds[getId(adress, port) - 1].Critic_Message.end())
 				{
-					std::multimap<PROTOCOLO, Mensaje>::iterator it = playersConnecteds[i].Critic_Message.begin();
-					while (it != playersConnecteds[i].Critic_Message.end()) 
+					// Remove elements while iterating
+					if ((it->second.id == auxIdToRemovePack)  && (it->first==PROTOCOLO::ROOMCHANGE))
 					{
-						// Remove elements while iterating
-						if (it->second.id == auxIdToRemovePack) 
-						{
-							it->second.id = -1;
-						}
-						else
-							it++;
+						it->second.id = -1;
 					}
+					else
+						it++;
 				}
+			
 				break;
 			}
 			default:
@@ -765,9 +764,12 @@ void SendRegularPack()
 									//Recorremos el vector de jugadores introduciendo el packet que deberemos enviar
 									for (int j = 0; j < gamesProxy[i].players.size(); j++)
 									{		
-										mutex.lock();
-										playersConnecteds[gamesProxy[i].players[j].id - 1].Critic_Message.insert({ PROTOCOLO::ROOMCHANGE, Mensaje(playersConnecteds[iterador].id,auxPacket) });
-										mutex.unlock();
+										if ((playersConnecteds[gamesProxy[i].players[j].id - 1].Critic_Message.count(PROTOCOLO::ROOMCHANGE)==0))
+										{
+											mutex.lock();
+											playersConnecteds[gamesProxy[i].players[j].id - 1].Critic_Message.insert({ PROTOCOLO::ROOMCHANGE, Mensaje(playersConnecteds[iterador].id,auxPacket) });
+											mutex.unlock();
+										}
 									}
 
 								}
@@ -1307,6 +1309,7 @@ void ClientReceive()
 				packRecieve >> auxSala;
 				if (proxy.id == auxint)
 				{
+					std::cout << "Me he de cambiar yo" << std::endl;
 					if (auxSala != proxy.idSalaActual)
 					{
 						salaAnterior = proxy.idSalaActual;
