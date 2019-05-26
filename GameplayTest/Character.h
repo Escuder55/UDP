@@ -30,6 +30,9 @@ public:
 	bool hoverRightDoor();
 	bool hoverDownDoor();
 
+	//CAMBIAMOS POSICION DEL CARACTER
+	void CharacterChangeRoom(float posX, float posY);
+
 private:
 	sf::Texture cTexture;
 	sf::IntRect myRect;

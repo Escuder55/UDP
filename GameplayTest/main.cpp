@@ -231,6 +231,29 @@ bool hoverDownDoor(float x, float y)
 	return false;
 }
 
+/*bool hoverUpDoor(float x, float y)
+{
+	if ((x < DOOR_UP_POS_X + 40) && (x > DOOR_UP_POS_X - 35))
+	{
+		if (((y + SPRITE_CHARACTER_HEIGHT) > DOOR_UP_POS_Y))
+		{
+			return true;
+		}
+	}
+	return false;
+}*/
+
+bool hoverLeftDoor(float x, float y)
+{
+	if (x < DOOR_LEFT_POS_X + 45)
+	{
+		if ((y > (DOOR_LEFT_POS_Y - 45)) && (y < (DOOR_LEFT_POS_Y)))
+		{
+			return true;
+		}
+	}
+	return false;
+}
 
 //THREAD RECEIVE SERVER
 void ServerReceive()
@@ -1135,6 +1158,7 @@ void ClientReceive()
 	PlayerProxy teamMateAux;
 	int auxint=-1;
 	int auxSala = -1;
+	int salaAnterior = 0;
 
 	
 	while (true)
@@ -1283,9 +1307,50 @@ void ClientReceive()
 				packRecieve >> auxSala;
 				if (proxy.id == auxint)
 				{
-					currentScene->currentBackground = auxSala;
-					currentScene->mySala = auxSala;
-					proxy.idSalaActual = auxSala;
+					if (auxSala != proxy.idSalaActual)
+					{
+						salaAnterior = proxy.idSalaActual;
+						currentScene->currentBackground = auxSala;
+						currentScene->mySala = auxSala;
+						proxy.idSalaActual = auxSala;
+
+						//CAMBIAMOS LA POSX Y POSY SEGUN LA SALA
+						std::cout << "La sala anterior: " << salaAnterior << std::endl;
+						std::cout << "La sala siguiente sala: " << proxy.idSalaActual << std::endl;
+
+						switch (salaAnterior)
+						{
+						case 0:
+						{
+							if (proxy.idSalaActual == 1)
+							{
+
+							}
+							else if (proxy.idSalaActual == 2)
+							{
+								std::cout << "ESTOY ENTRANDO Y DEBO CAMBIAR LA POSICION DEL JUGADOR" << std::endl;
+								myGameScene->myCharacter->CharacterChangeRoom(SCREEN_WIDTH / 2, 100.f);
+							}
+							break;
+						}
+						case 1:
+						{
+							break;
+						}
+						case 2:
+						{
+							break;
+						}
+						case 3:
+						{
+							break;
+						}
+						default:
+						{
+							break;
+						}
+						}
+					}
 				}				
 				else 
 				{

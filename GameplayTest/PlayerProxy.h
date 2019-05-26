@@ -23,7 +23,7 @@ public:
 	float posY;
 	int NumEnemigos;
 	int idPartidaActual;
-	int idSalaActual;
+	int idSalaActual = 0;
 
 	PlayerProxy();
 	~PlayerProxy();

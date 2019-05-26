@@ -277,15 +277,6 @@ void Character::UpdateCharacterPosition(sf::Keyboard::Key _keyPressed, bool _pre
 	default:
 		break;
 	}
-	
-	if (hoverRightDoor())
-	{
-		std::cout << "Me piro a la sala 2 -----------------------" << std::endl;;
-	}
-	if (hoverDownDoor())
-	{
-		std::cout << "Me piro a la sala 3 bro-----------------------" << std::endl;;
-	}
 
 	///////////////////////////////////////////DISPARO
 
@@ -365,4 +356,11 @@ bool Character::hoverDownDoor()
 		}
 	}
 	return false;
+}
+
+void Character::CharacterChangeRoom(float posX, float posY)
+{
+	characterSprite.setPosition(posX, posY);
+	characterPosition.x = posX;
+	characterPosition.y = posY;
 }
