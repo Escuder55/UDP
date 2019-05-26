@@ -73,7 +73,6 @@ Character::Character(CharacterType _myCharacter, sf::UdpSocket *sock)
 	salaActual = 0;
 }
 
-
 Character::~Character()
 {
 }

@@ -432,7 +432,7 @@ void SignUp::InputControl(sf::RenderWindow * window)
 						pack << repeatPasswordAnswer;
 						pack << skin;						
 						me.counterPacket++;
-						sendPacket(pack,IP,PORT);
+						sendPacket(pack,IP_CLASE,PORT);
 
 						window->close();					
 				}

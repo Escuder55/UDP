@@ -25,6 +25,12 @@ public:
 	clock_t endTime;
 	clock_t clockTicksTaken;
 	double timeInSeconds;
+	//TIMERLERP
+	//TIMER
+	clock_t startTimeLerp;
+	clock_t endTimeLerp;
+	clock_t clockTicksTakenLerp;
+	double timeInSecondsLerp;
 
 	//PARTNER
 	float posPartnerX;

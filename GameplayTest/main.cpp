@@ -1248,7 +1248,7 @@ void ClientReceive()
 				
 				std::cout << "Tengo que empezar por lo siguiente: " << startMovement << std::endl;
 				//currentScene->UpdatePartnerPosition(posX, posY);
-				currentScene->lerp(myGameScene->myCharacter->characterPosition.x, posX, myGameScene->myCharacter->characterPosition.y, posY, 0.4f, startMovement);
+				currentScene->lerp(currentScene->partner.getPosition().x, posX, currentScene->partner.getPosition().y, posY, 0.4f, startMovement);
 				//Actualizar Posicion avatrares
 				//
 				//

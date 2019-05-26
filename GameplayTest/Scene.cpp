@@ -38,23 +38,66 @@ void Scene::lerp(float Xinicial, float Xfinal, float Yinicial, float Yfinal, flo
 	bool finalLerpOne = false;
 	float RangoError = 0.2f;
 
-	//TIMERS LERPS
-	//TIMER
-	clock_t startTimeLerp;
-	clock_t endTimeLerp;
-	clock_t clockTicksTakenLerp;
-	double timeInSecondsLerp;
-	startTimeLerp = clock();
+	int iteraciones=100;
 
-	//VERTICAL
+	float distX = 0;
+	float distY = 0;
+	float percent=0;
+	//TIMERS LERPS	
+	startTimeLerp = clock();
+	endTimeLerp = clock();
+	clockTicksTakenLerp = endTimeLerp - startTimeLerp;
+	timeInSecondsLerp = clockTicksTakenLerp / (double)CLOCKS_PER_SEC;
+
+	distX = Xfinal - Xinicial;
+	distY = Yfinal - Yinicial;
 	if (StartMovement == 0)
 	{
+		while (timeInSecondsLerp < 0.2)
+		{
+			endTimeLerp = clock();
+			clockTicksTakenLerp = endTimeLerp - startTimeLerp;
+			timeInSecondsLerp = clockTicksTakenLerp / (double)CLOCKS_PER_SEC;
 
+			percent = (timeInSecondsLerp * 10) / 4;
+			UpdatePartnerPosition(Xinicial + (distX*percent), partner.getPosition().y);
+		}
+
+		while ((timeInSecondsLerp < 0.4))
+		{
+			endTimeLerp = clock();
+			clockTicksTakenLerp = endTimeLerp - startTimeLerp;
+			timeInSecondsLerp = clockTicksTakenLerp / (double)CLOCKS_PER_SEC;
+
+			percent = ((timeInSecondsLerp - 0.2) * 10) / 4;
+			UpdatePartnerPosition(partner.getPosition().x, Yinicial + (distY*percent));
+
+		}
 	}
-	//HORIZONTAL
 	else
 	{
+		while (timeInSecondsLerp < 0.2)
+		{
+			endTimeLerp = clock();
+			clockTicksTakenLerp = endTimeLerp - startTimeLerp;
+			timeInSecondsLerp = clockTicksTakenLerp / (double)CLOCKS_PER_SEC;
 
+			percent = (timeInSecondsLerp * 10) / 4;
+
+			UpdatePartnerPosition(partner.getPosition().x, Yinicial + (distY*percent));
+		}
+
+		while ((timeInSecondsLerp < 0.4))
+		{
+			endTimeLerp = clock();
+			clockTicksTakenLerp = endTimeLerp - startTimeLerp;
+			timeInSecondsLerp = clockTicksTakenLerp / (double)CLOCKS_PER_SEC;
+
+			percent = ((timeInSecondsLerp - 0.2) * 10) / 4;
+
+			UpdatePartnerPosition(Xinicial + (distX*percent), partner.getPosition().y);
+
+		}
 	}
 }
 
