@@ -53,23 +53,23 @@ void Scene::lerp(float Xinicial, float Xfinal, float Yinicial, float Yfinal, flo
 	distY = Yfinal - Yinicial;
 	if (StartMovement == 0)
 	{
-		while (timeInSecondsLerp < 0.2)
+		while (timeInSecondsLerp < 0.1f)
 		{
 			endTimeLerp = clock();
 			clockTicksTakenLerp = endTimeLerp - startTimeLerp;
 			timeInSecondsLerp = clockTicksTakenLerp / (double)CLOCKS_PER_SEC;
 
-			percent = (timeInSecondsLerp * 10) / 4;
+			percent = (timeInSecondsLerp * 10.f);
 			UpdatePartnerPosition(Xinicial + (distX*percent), partner.getPosition().y);
 		}
 
-		while ((timeInSecondsLerp < 0.4))
+		while ((timeInSecondsLerp < 0.2f))
 		{
 			endTimeLerp = clock();
 			clockTicksTakenLerp = endTimeLerp - startTimeLerp;
 			timeInSecondsLerp = clockTicksTakenLerp / (double)CLOCKS_PER_SEC;
 
-			percent = ((timeInSecondsLerp - 0.2) * 10) / 4;
+			percent = ((timeInSecondsLerp - 0.1f) * 10.f);
 			UpdatePartnerPosition(partner.getPosition().x, Yinicial + (distY*percent));
 
 		}

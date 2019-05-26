@@ -119,7 +119,7 @@ void Character::DrawCharacter(sf::RenderWindow * window)
 	}
 
 	//Envio Acumulados////////////////////////////////////////////////
-	if (timeInSeconds2 > 0.2)
+	if (timeInSeconds2 > 0.05)
 	{
 		startTime2 = clock();
 		accumMovementForPacket.push_back({ characterPosition.x, characterPosition.y });
