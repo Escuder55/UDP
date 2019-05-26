@@ -26,22 +26,31 @@ public:
 	void UpdateCharacterPosition(sf::Keyboard::Key _keyPressed, bool _pressed);
 	void cleanAccumMovement(int idConfirmed);
 
+	bool changeRoomToRight = false;
+	bool changeRoomToLeft = false;
+	bool changeRoomToDown = false;
+	bool changeRoomToUp = false;
+
 	//CAMBIAMOS POSICION DEL CARACTER
 	void CharacterChangeRoom(float posX, float posY);
 
+	bool hoverRightDoor(float x, float y);
+	bool hoverDownDoor(float x, float y);
+	bool hoverLeftDoor(float x, float y);
+	bool hoverUpDoor(float x, float y);
 	//BLOCK paredes externas
 	bool collisionLeftAll();
 	bool collisionDownAll();
 	bool collisionRightAll();
 	bool collisionUpAll();
 
+	sf::Vector2f characterPosition;
 
 private:
 	sf::Texture cTexture;
 	sf::IntRect myRect;
 	sf::Sprite characterSprite;
 	sf::Vector2f spritePosition;
-	sf::Vector2f characterPosition;
 
 	std::list<Mensaje> accumMove;
 

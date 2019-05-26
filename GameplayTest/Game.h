@@ -28,7 +28,7 @@ public:
 private:
 	sf::Texture  bgTexture[4];
 	sf::Texture  doorTexture[4];
-	sf::Sprite background[3];
+	sf::Sprite background[4];
 	sf::Sprite doors[4];
 	sf::UdpSocket *socket;
 

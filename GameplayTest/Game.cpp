@@ -9,6 +9,7 @@ Game::Game()
 
 Game::Game(CharacterType myCharacterType, float _posX, float _posY, sf::UdpSocket *sock, int skin)
 {
+	startTime = clock();
 	//Guardamos socket
 	socket = sock;
 	/////////////////////////////////////////////inicializaciones temporales,para probar cosas
@@ -172,9 +173,12 @@ void Game::InitSprites()
 
 TypeScene Game::DrawScene()
 {
+	sf::Socket::Status status;
 	while (window.isOpen())
 	{
-		
+		endTime = clock();
+		clockTicksTaken = endTime - startTime;
+		timeInSeconds = clockTicksTaken / (double)CLOCKS_PER_SEC;
 		///////////////////////////////////limpiamos la pantalla
 		window.clear();
 		///////////////////////////////////pintamos background y puertas de momento
@@ -183,6 +187,148 @@ TypeScene Game::DrawScene()
 		InputControl(&window);
 		///////////////////////////////////el character se pinta a si mismo
 		myCharacter->DrawCharacter(&window);
+		switch (mySala)
+		{
+		case 0:
+		{
+			if (myCharacter->changeRoomToLeft || myCharacter->changeRoomToUp)
+			{
+				myCharacter->changeRoomToLeft = false;
+				myCharacter->changeRoomToUp = false;
+			}
+			if (myCharacter->changeRoomToDown)
+			{
+				if (timeInSeconds > 1) 
+				{
+					startTime = clock();
+					GamePack.clear();
+					GamePack << PROTOCOLO::ROOMCHANGE;
+					GamePack << 2;
+
+					status = socket->send(GamePack, IP_CLASE, PORT);
+					if (status == sf::Socket::Status::Done)
+					{
+						std::cout << "Se ha enviado que me muevo a la sala 1" << std::endl;
+					}
+				}
+			}
+			else if (myCharacter->changeRoomToRight)
+			{
+				if (timeInSeconds > 1)
+				{
+					startTime = clock();
+					GamePack.clear();
+					GamePack << PROTOCOLO::ROOMCHANGE;
+					GamePack << 1;
+
+					status = socket->send(GamePack, IP_CLASE, PORT);
+					if (status == sf::Socket::Status::Done)
+					{
+						std::cout << "Se ha enviado que me muevo a la sala 1" << std::endl;
+					}
+				}
+			}
+			break;
+		}
+		case 1:
+		{
+			if (myCharacter->changeRoomToLeft)
+			{
+				if (timeInSeconds > 1)
+				{
+					startTime = clock();
+					GamePack.clear();
+					GamePack << PROTOCOLO::ROOMCHANGE;
+					GamePack << 0;
+
+					status = socket->send(GamePack, IP_CLASE, PORT);
+					if (status == sf::Socket::Status::Done)
+					{
+						std::cout << "Se ha enviado que me muevo a la sala 1" << std::endl;
+					}
+				}
+			}
+			if (myCharacter->changeRoomToRight || myCharacter->changeRoomToDown || myCharacter->changeRoomToUp)
+			{
+				myCharacter->changeRoomToRight = false;
+				myCharacter->changeRoomToDown = false;
+				myCharacter->changeRoomToUp = false;
+			}
+			break;
+		}
+		case 2:
+		{
+			if (myCharacter->changeRoomToRight)
+			{
+				if (timeInSeconds > 1)
+				{
+					startTime = clock();
+					GamePack.clear();
+					GamePack << PROTOCOLO::ROOMCHANGE;
+					GamePack << 3;
+
+					status = socket->send(GamePack, IP_CLASE, PORT);
+					if (status == sf::Socket::Status::Done)
+					{
+						std::cout << "Se ha enviado que me muevo a la sala 1" << std::endl;
+					}
+				}
+
+				break;
+			}
+			else if (myCharacter->changeRoomToUp)
+			{
+				if (timeInSeconds > 1)
+				{
+					startTime = clock();
+					GamePack.clear();
+					GamePack << PROTOCOLO::ROOMCHANGE;
+					GamePack << 0;
+
+					status = socket->send(GamePack, IP_CLASE, PORT);
+					if (status == sf::Socket::Status::Done)
+					{
+						std::cout << "Se ha enviado que me muevo a la sala 1" << std::endl;
+					}
+				}
+			}
+			if (myCharacter->changeRoomToLeft || myCharacter->changeRoomToDown)
+			{
+				myCharacter->changeRoomToLeft = false;
+				myCharacter->changeRoomToDown = false;
+			}
+		}
+		case 3:
+		{
+			if (myCharacter->changeRoomToLeft)
+			{
+				if (timeInSeconds > 1)
+				{
+					startTime = clock();
+					GamePack.clear();
+					GamePack << PROTOCOLO::ROOMCHANGE;
+					GamePack << 2;
+
+					status = socket->send(GamePack, IP_CLASE, PORT);
+					if (status == sf::Socket::Status::Done)
+					{
+						std::cout << "Se ha enviado que me muevo a la sala 1" << std::endl;
+					}
+				}
+			}
+			if (myCharacter->changeRoomToRight || myCharacter->changeRoomToDown || myCharacter->changeRoomToUp)
+			{
+				myCharacter->changeRoomToRight = false;
+				myCharacter->changeRoomToDown = false;
+				myCharacter->changeRoomToUp = false;
+			}
+			break;
+		}
+		default:
+		{
+			break;
+		}
+		}
 
 		window.display();
 	}
@@ -252,7 +398,7 @@ void Game::InputControl(sf::RenderWindow * window)
 
 void Game::DrawSprites()
 {		
-	window.draw(background[currentBackground]);	
+	window.draw(background[mySala]);	
 	///////////////////////////PINTANDO LAS PUERTAS
 	if (!doorsOpen)
 	{

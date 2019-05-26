@@ -257,6 +257,12 @@ void Character::UpdateCharacterPosition(sf::Keyboard::Key _keyPressed, bool _pre
 			characterPosition.y -= speed;
 			characterSprite.setPosition(characterPosition);
 			enviarMove = true;
+			//Comprobar arriba
+			if (hoverUpDoor(characterPosition.x, characterPosition.y))
+			{
+				changeRoomToUp = true;
+				std::cout<<"------------------------"<<std::endl;
+			}
 		}
 		break;
 
@@ -267,6 +273,11 @@ void Character::UpdateCharacterPosition(sf::Keyboard::Key _keyPressed, bool _pre
 			characterPosition.x += speed;
 			characterSprite.setPosition(characterPosition);
 			enviarMove = true;
+			//Comprobar derecha
+			if (hoverRightDoor(characterPosition.x, characterPosition.y))
+			{
+				changeRoomToRight = true;
+			}
 		}
 		break;
 
@@ -277,6 +288,12 @@ void Character::UpdateCharacterPosition(sf::Keyboard::Key _keyPressed, bool _pre
 			characterPosition.y += speed;
 			characterSprite.setPosition(characterPosition);
 			enviarMove = true;
+			//Comprobar abajo
+			if (hoverDownDoor(characterPosition.x, characterPosition.y))
+			{
+				changeRoomToDown = true;
+				std::cout << "door down!" << std::endl;
+			}
 		}
 		break;
 
@@ -286,6 +303,10 @@ void Character::UpdateCharacterPosition(sf::Keyboard::Key _keyPressed, bool _pre
 			animationCounterY = 1;
 			characterPosition.x -= speed;
 			characterSprite.setPosition(characterPosition);
+			if (hoverLeftDoor(characterPosition.x, characterPosition.y))
+			{
+				changeRoomToLeft = true;
+			}
 			enviarMove = true;
 			break;
 		}
@@ -329,7 +350,6 @@ void Character::UpdateCharacterPosition(sf::Keyboard::Key _keyPressed, bool _pre
 	default:
 		break;
 	}
-	
 
 }
 
@@ -397,6 +417,54 @@ bool Character::collisionUpAll()
 	if ((characterSprite.getPosition().x > 0))
 	{
 		if (((characterSprite.getPosition().y - 30) > DOOR_UP_POS_Y))
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+bool Character::hoverRightDoor(float x, float y)
+{
+	if ((x + SPRITE_CHARACTER_WIDTH) > DOOR_RIGHT_POS_X)
+	{
+		if ((y > (DOOR_RIGHT_POS_Y - 45)) && (y < (DOOR_RIGHT_POS_Y)))
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+bool Character::hoverDownDoor(float x, float y)
+{
+	if ((x < DOOR_DOWN_POS_X + 40) && (x > DOOR_DOWN_POS_X - 35))
+	{
+		if (((y + SPRITE_CHARACTER_HEIGHT) > DOOR_DOWN_POS_Y))
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+bool Character::hoverUpDoor(float x, float y)
+{
+	if ( (x>(DOOR_UP_POS_X-10)) && (x < (DOOR_UP_POS_X +40)) )
+	{
+		if (((y - SPRITE_CHARACTER_HEIGHT) < DOOR_UP_POS_Y))
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+bool Character::hoverLeftDoor(float x, float y)
+{
+	if (x < DOOR_LEFT_POS_X + 45)
+	{
+		if ((y > (DOOR_LEFT_POS_Y - 45)) && (y < (DOOR_LEFT_POS_Y)))
 		{
 			return true;
 		}

@@ -212,53 +212,6 @@ bool IsInTheList(int id)
 
 //Comprobar cambio room//////////////////////////////////////////////////////////////////////
 
-bool hoverRightDoor(float x, float y)
-{
-	if ((x + SPRITE_CHARACTER_WIDTH) > DOOR_RIGHT_POS_X)
-	{
-		if ((y > (DOOR_RIGHT_POS_Y - 45)) && (y < (DOOR_RIGHT_POS_Y)))
-		{
-			return true;
-		}
-	}
-	return false;
-}
-
-bool hoverDownDoor(float x, float y)
-{
-	if ((x < DOOR_DOWN_POS_X + 40) && (x > DOOR_DOWN_POS_X - 35))
-	{
-		if (((y + SPRITE_CHARACTER_HEIGHT) > DOOR_DOWN_POS_Y))
-		{
-			return true;
-		}
-	}
-	return false;
-}
-
-/*bool hoverUpDoor(float x, float y)
-{
-	if ((x < DOOR_UP_POS_X + 40) && (x > DOOR_UP_POS_X - 35))
-	{
-		if (((y + SPRITE_CHARACTER_HEIGHT) > DOOR_UP_POS_Y))
-		{
-			return true;
-		}
-	}
-	return false;
-}*/
-
-bool hoverLeftDoor(float x, float y)
-{
-	if (x < DOOR_LEFT_POS_X + 45)
-	{
-		if ((y > (DOOR_LEFT_POS_Y - 45)) && (y < (DOOR_LEFT_POS_Y)))
-		{
-			return true;
-		}
-	}
-	return false;
-}
 
 //THREAD RECEIVE SERVER
 void ServerReceive()
@@ -431,7 +384,26 @@ void ServerReceive()
 			}
 			case PROTOCOLO::ROOMCHANGE:
 			{
-				pack >> auxIdToRemovePack;
+				pack >> auxSala;
+
+				playersConnecteds[getId(adress, port)].idSalaActual = auxSala;
+				for (int i = 0; i < gamesProxy.size(); i++)
+				{
+					if (playersConnecteds[getId(adress, port)].idPartidaActual== gamesProxy[i].id)
+					{
+						for (int j = 0; j < gamesProxy[i].players.size(); j++)
+						{
+							pack.clear();
+							pack << PROTOCOLO::ROOMCHANGE;
+							pack << (getId(adress, port) + 1);
+							pack << auxSala;
+							playersConnecteds[gamesProxy[i].players[j].id - 1].Regular_Message.insert({PROTOCOLO::ROOMCHANGE,Mensaje((getId(adress, port) + 1),pack)});
+						}
+					}
+				}
+
+				std::cout << "movemos al jugador con id: " << getId(adress, port) << " a la sala : " << auxSala << std::endl;
+				/*pack >> auxIdToRemovePack;
 
 				mutex.lock();
 				std::multimap<PROTOCOLO, Mensaje>::iterator it = playersConnecteds[getId(adress, port)-1].Critic_Message.begin();
@@ -445,7 +417,7 @@ void ServerReceive()
 					else
 						it++;
 				}
-				mutex.unlock();
+				mutex.unlock();*/
 			
 				break;
 			}
@@ -528,12 +500,12 @@ void SendRegularPack()
 					auxProtocolo = PROTOCOLO::REGISTER;
 					//std::cout << "2" << std::endl;
 				}
-				/*if (aux < playersConnecteds[iterador].Regular_Message.count(PROTOCOLO::ROOMCHANGE))
+				if (aux < playersConnecteds[iterador].Regular_Message.count(PROTOCOLO::ROOMCHANGE))
 				{
 					aux = playersConnecteds[iterador].Regular_Message.count(PROTOCOLO::ROOMCHANGE);
 					auxProtocolo = PROTOCOLO::ROOMCHANGE;
 					//std::cout << "3" << std::endl;
-				}*/
+				}
 				if (aux < playersConnecteds[iterador].Regular_Message.count(PROTOCOLO::DISCONECTED))
 				{
 					aux = playersConnecteds[iterador].Regular_Message.count(PROTOCOLO::DISCONECTED);
@@ -707,7 +679,7 @@ void SendRegularPack()
 					}
 					case STARTGAME:
 					{
-						//std::cout << "CONTESTANDO A WANTPLAY\n";
+						std::cout << "CONTESTANDO A WANTPLAY\n";
 						break;
 					}
 					case DISCONECTED:
@@ -724,7 +696,7 @@ void SendRegularPack()
 
 							OKMovement = true;
 							//Comprobamos Door////////////////////////////////////////////////////////////////
-							switch (playersConnecteds[iterador].idSalaActual)
+							/*switch (playersConnecteds[iterador].idSalaActual)
 							{
 							case 0: 
 							{
@@ -732,7 +704,7 @@ void SendRegularPack()
 								if (changeRoom = hoverRightDoor(posX[i], posY[i]))
 									aux = 1;
 								//DOWN
-								if (changeRoom = hoverDownDoor(posX[i], posY[i]))
+*								if (changeRoom = hoverDownDoor(posX[i], posY[i]))
 									aux = 2;
 								break;
 							}
@@ -756,10 +728,11 @@ void SendRegularPack()
 							}
 							default:
 								break;
-							}
+							}*/
 						}
 						if (changeRoom)
 						{
+							/*
 							auxPacket.clear();
 							auxPacket << PROTOCOLO::ROOMCHANGE;
 							auxPacket << playersConnecteds[iterador].id;
@@ -784,7 +757,7 @@ void SendRegularPack()
 
 							std::multimap<PROTOCOLO, Mensaje>::iterator it2 = playersConnecteds[iterador].Regular_Message.find(PROTOCOLO::MOVEMENT);
 							playersConnecteds[iterador].Regular_Message.erase(it2);
-							changeRoom = false;
+							changeRoom = false;*/
 						}
 						else if (OKMovement)
 						{
@@ -862,6 +835,14 @@ void SendRegularPack()
 							//std::cout << "No pude enviar el movimiento acumulado" << std::endl;
 						}
 						break; 
+					}
+					case ROOMCHANGE:
+					{
+						socket.send(playersConnecteds[iterador].Regular_Message.find(PROTOCOLO::ROOMCHANGE)->second.pack, playersConnecteds[iterador].IP_Adress, playersConnecteds[iterador].port);
+						//Enviamos confirmacion
+						playersConnecteds[iterador].Regular_Message.erase(PROTOCOLO::ROOMCHANGE);
+						std::cout << "Enviamos la confirmacion del cambio de sala" << std::endl;
+						break;
 					}
 					default:
 					{
@@ -1078,14 +1059,14 @@ void SendCriticPack()
 				}
 				case ROOMCHANGE:
 				{
-					if (timeInSecondsRoomChange > 1.0f)
+					/*if (timeInSecondsRoomChange > 1.0f)
 					{
 						startTimeRoomChange = clock();
-						if (playersConnecteds[iterador].Critic_Message.find(PROTOCOLO::ROOMCHANGE)->second.id != -1)
+						std::multimap<PROTOCOLO, Mensaje>::iterator it = playersConnecteds[iterador].Critic_Message.find(PROTOCOLO::ROOMCHANGE);
+						if (it->second.id != -1)
 						{
 							//std::cout << "ENVIANDO EL CRITICO DE ROOM CHANGE. \n";
-							status = socket.send(playersConnecteds[iterador].Critic_Message.find(PROTOCOLO::ROOMCHANGE)->second.pack, playersConnecteds[iterador].IP_Adress, playersConnecteds[iterador].port);
-						
+							status = socket.send(it->second.pack, playersConnecteds[iterador].IP_Adress, playersConnecteds[iterador].port);
 							if (status != sf::Socket::Done)
 							{
 								std::cout << "He enviado paquete critio de ROOM CHANGE" << std::endl;
@@ -1093,16 +1074,13 @@ void SendCriticPack()
 							else
 							{
 								std::cout << "No he podido enviar el paquete critio de ROOM CHANGE" << std::endl;
-							}
-						
+							}						
 						}
 						else
 						{
-							std::multimap<PROTOCOLO, Mensaje>::iterator it = playersConnecteds[iterador].Critic_Message.find(PROTOCOLO::ROOMCHANGE);
 							playersConnecteds[iterador].Critic_Message.erase(it);
-							std::cout << "Ha borrado un ROOMCHANGE CRITICO" << std::endl;
-						}
-					}
+							std::cout << "Ha borrado un ROOMCHANGE CRITICO" << std::endl;						}
+					}*/
 					break;
 				}
 				case DISCONECTED:
@@ -1322,8 +1300,67 @@ void ClientReceive()
 			}
 			case PROTOCOLO::ROOMCHANGE:
 			{
-				//idjugador sala
 				packRecieve >> auxint;
+				packRecieve >> auxSala;
+				
+				if (proxy.id == auxint)
+				{
+					std::cout << "Me he de cambiar yo" <<" Sala : "<< auxSala<< std::endl;
+					switch (currentScene->mySala)
+					{
+					case 0:
+					{
+						if (auxSala == 1)
+						{
+							myGameScene->myCharacter->CharacterChangeRoom(80, myGameScene->myCharacter->characterPosition.y);
+						}
+						else if (auxSala == 2)
+						{
+							myGameScene->myCharacter->CharacterChangeRoom(myGameScene->myCharacter->characterPosition.x, 80);
+						}
+						break;
+					}
+					case 1:
+					{
+						myGameScene->myCharacter->CharacterChangeRoom(SCREEN_WIDTH-80, myGameScene->myCharacter->characterPosition.y);
+						break;
+					}
+					case 2:
+					{
+						if (auxSala == 0)
+						{
+							myGameScene->myCharacter->CharacterChangeRoom(myGameScene->myCharacter->characterPosition.x,( SCREEN_HEIGHT- 80- SPRITE_CHARACTER_HEIGHT));
+						}
+						else if (auxSala == 3)
+						{
+							myGameScene->myCharacter->CharacterChangeRoom(80, myGameScene->myCharacter->characterPosition.y);
+						}
+						break;
+					}
+					case 3:
+					{
+						myGameScene->myCharacter->CharacterChangeRoom(SCREEN_WIDTH - 80, myGameScene->myCharacter->characterPosition.y);
+						break;
+					}
+					default:
+						break;
+					}
+
+					currentScene->mySala = auxSala;
+					proxy.idSalaActual = auxSala;
+					myGameScene->myCharacter->changeRoomToDown = false;
+					myGameScene->myCharacter->changeRoomToLeft = false;
+					myGameScene->myCharacter->changeRoomToRight = false;
+					myGameScene->myCharacter->changeRoomToUp = false;
+				}
+				else 
+				{
+					std::cout << "No me he de cambiar" << std::endl;
+					currentScene->partnerSala = auxSala;
+				}
+
+				//idjugador sala
+				/*packRecieve >> auxint;
 				std::cout << "id that changed :" <<auxint<< "myId :"<< proxy.id << std::endl;
 				packRecieve >> auxSala;
 				if (proxy.id == auxint)
@@ -1378,11 +1415,12 @@ void ClientReceive()
 					currentScene->partnerSala = auxSala;
 					std::cout << "ME CAGO EN TO LOKO" << std::endl;
 				}
+
 				//enviamos para que pare de enviar
 				packRecieve.clear();
 				packRecieve << PROTOCOLO::ROOMCHANGE;
 				packRecieve << auxint;
-				socket.send(packRecieve,IP_CLASE,PORT);
+				socket.send(packRecieve,IP_CLASE,PORT);*/
 				break;
 			}
 			default:
@@ -1398,7 +1436,6 @@ void ClientReceive()
 void clienteMain()
 {
 	////  ------------- MENSAJE --------------- ////
-	//sf::Packet pack;
 
 	socket.setBlocking(true);
 
@@ -1484,8 +1521,7 @@ void clienteMain()
 			break;
 
 		case PLAY:
-			currentScene->DrawScene();
-			break;
+			currentScene->DrawScene();		
 
 		case EXIT:
 			finish = true;
