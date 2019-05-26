@@ -710,9 +710,8 @@ int BD::getSesionOfId(int cuenta)
 
 void BD::InicioPartida(int sesion)
 {
-	prep_stmt = conn->prepareStatement("INSERT INTO partida(monstruos_matados, sesion) VALUES(?, ?)");
+	prep_stmt = conn->prepareStatement("INSERT INTO partida(monstruos_matados, sesion) VALUES(0, ?)");
 	prep_stmt->setInt(1, sesion);
-	prep_stmt->setInt(2, 0);
 	res = prep_stmt->executeQuery();
 
 	delete res;
@@ -721,7 +720,7 @@ void BD::InicioPartida(int sesion)
 
 int BD::getPartidaActual(int sesion)
 {
-	prep_stmt = conn->prepareStatement("SELECT id_partida from partida WHERE sesion = ? ORDER BY tiempoInicial DESC LIMIT 1");
+	prep_stmt = conn->prepareStatement("SELECT id_partida from partida WHERE sesion = ? ORDER BY inicio DESC LIMIT 1");
 	prep_stmt->setInt(1, sesion);
 	res = prep_stmt->executeQuery();
 

@@ -669,7 +669,7 @@ void SendRegularPack()
 					}
 					case STARTGAME:
 					{
-						std::cout << "CONTESTANDO A WANTPLAY\n";
+						std::cout << "CONTESTANDO A STARTPLAY\n";
 						break;
 					}
 					case DISCONECTED:
@@ -841,6 +841,14 @@ void SendRegularPack()
 								//playersWaitingMap1.erase(playersWaitingMap1.begin());
 								idPlayers[i] = j;
 								//std::cout << "UNA VEZ!!!!!!!!!!!!!!!!!!!!!!!!" <<j<< std::endl;
+
+								//Insert nueva partida
+								std::cout << "Debo insertar al jugador con la siguiente sesion: " << playersConnecteds[j].id_sesion << std::endl;
+
+								BaseDatos->InicioPartida(playersConnecteds[j].id_sesion);
+								playersConnecteds[j].id_partida = BaseDatos->getPartidaActual(playersConnecteds[j].id_sesion);
+
+								std::cout << "La partida tiene la siguiente id:  " << playersConnecteds[j].id_partida << std::endl;
 							}							
 						}
 						
@@ -884,15 +892,17 @@ void SendRegularPack()
 					//std::cout << "EMPIEZA LA PARTIDA" << std::endl;
 					gamesProxy.push_back({ games,2,auxPlayers,auxEnemy });
 					games++;
-						//rellenar Players
+
+					//rellenar Players
 					for (int i = 0; i < 4; i++)
 					{
-						//rellenar Players
+					//rellenar Players
 
 					}
 					for (int i = 0; i < map1.enemiesMap.size(); i++)
 					{
-						//gamesProxy.back().EnemiesGame.pushback(map1.enemiesMap[i]);
+					//gamesProxy.back().EnemiesGame.pushback(map1.enemiesMap[i]);
+
 					}
 				}
 				if (playersWaitingMap3.size() >= 4)
@@ -992,10 +1002,8 @@ void SendCriticPack()
 							playersConnecteds[iterador].Critic_Message.erase(PROTOCOLO::STARTGAME);
 						}
 						mutex.unlock();
-						//Insert nueva partida
-						BaseDatos->InicioPartida(playersConnecteds[iterador].id_sesion);
-						//playersConnecteds[iterador].id_partida = BaseDatos->getPartidaActual(playersConnecteds[iterador].id_sesion);
 					}
+
 					break;
 				}
 				case ROOMCHANGE:
