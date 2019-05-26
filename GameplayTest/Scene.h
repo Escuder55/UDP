@@ -35,6 +35,10 @@ public:
 	int mySala;
 	void UpdatePartnerPosition(float _posX, float _posY);
 	int currentBackground;
+
+	//INTERPOLATION
+	void lerp(float Xinicial, float Xfinal, float Yinicial, float Yfinal, float deltaTime, int StartMovement);
+
 protected:
 	virtual void InputControl(sf::RenderWindow* window);
 	virtual void sendPacketCritic(sf::Packet & pack, sf::IpAddress _IP, unsigned short _port);

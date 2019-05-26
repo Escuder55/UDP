@@ -222,16 +222,16 @@ void ServerReceive()
 	BaseDatos->InitBaseDatos();
 
 	map1 = BaseDatos->getMap1();
-	map2 = BaseDatos->getMap2();
-	map3 = BaseDatos->getMap3();
+	/*map2 = BaseDatos->getMap2();
+	map3 = BaseDatos->getMap3();*/
 
 	//// --------------------- BINARY TREES -------------------- ////
-	BinaryTree BST;
+	//BinaryTree BST;
 
 	//// -------------------- MONSTERS SALA -------------------- ////
 	map1.enemiesMap = BaseDatos->getMonsterMap1();
-	map2.enemiesMap = BaseDatos->getMonsterMap2();
-	map3.enemiesMap = BaseDatos->getMonsterMap3();
+	/*map2.enemiesMap = BaseDatos->getMonsterMap2();
+	map3.enemiesMap = BaseDatos->getMonsterMap3();*/
 
 	/*for (int i = 0; i < map1.enemiesMap.size(); i++)
 	{
@@ -297,7 +297,7 @@ void ServerReceive()
 					mutex.lock();
 					playersConnecteds[getId(adress, port)].Regular_Message.insert({ PROTOCOLO::HELLO, Mensaje(playersConnecteds[getId(adress, port)].counterPacket, pack) });
 					mutex.unlock();
-					//std::cout << " Se ha recibido un nuevo cliente." << std::endl;
+					std::cout << " Se ha recibido un nuevo cliente." << std::endl;
 				}
 				else
 				{
@@ -328,7 +328,7 @@ void ServerReceive()
 					if (!IsInTheList(playersConnecteds[getId(adress, port)].id))
 					{
 						playersWaitingMap1.push_back({ getId(adress, port)+1 ,1,playersConnecteds[getId(adress, port)].NumEnemigos });
-						//std::cout << "Quieren entrar!                     fewefew" << std::endl;
+						std::cout << "Quieren entrar!                     fewefew" << std::endl;
 					}					
 					break;
 				}
@@ -402,23 +402,7 @@ void ServerReceive()
 					}
 				}
 
-				std::cout << "movemos al jugador con id: " << getId(adress, port) << " a la sala : " << auxSala << std::endl;
-				/*pack >> auxIdToRemovePack;
-
-				mutex.lock();
-				std::multimap<PROTOCOLO, Mensaje>::iterator it = playersConnecteds[getId(adress, port)-1].Critic_Message.begin();
-				while (it != playersConnecteds[getId(adress, port) - 1].Critic_Message.end())
-				{
-					// Remove elements while iterating
-					if ((it->second.id == auxIdToRemovePack) && (it->first==PROTOCOLO::ROOMCHANGE))
-					{
-						it->second.id = -1;
-					}
-					else
-						it++;
-				}
-				mutex.unlock();*/
-			
+				std::cout << "movemos al jugador con id: " << getId(adress, port) << " a la sala : " << auxSala << std::endl;			
 				break;
 			}
 			default:
@@ -452,6 +436,9 @@ void SendRegularPack()
 	//MOVEMENT
 	float posX[5];
 	float posY[5];
+	//AUX MOVEMENT (INTERPOLATION)
+	int startMovement = 0;
+
 	bool OKMovement = false;
 	bool changeRoom = false;
 
@@ -695,71 +682,19 @@ void SendRegularPack()
 							auxPacket >> posY[i];
 
 							OKMovement = true;
-							//Comprobamos Door////////////////////////////////////////////////////////////////
-							/*switch (playersConnecteds[iterador].idSalaActual)
-							{
-							case 0: 
-							{
-								//RIGHT
-								if (changeRoom = hoverRightDoor(posX[i], posY[i]))
-									aux = 1;
-								//DOWN
-*								if (changeRoom = hoverDownDoor(posX[i], posY[i]))
-									aux = 2;
-								break;
-							}
-							case 1:
-							{
-								//Left
-								break;
-							}
-							case 2:
-							{
-								//RIGHT
-								if (changeRoom = hoverRightDoor(posX[i], posY[i]))
-									aux = 3;
-								//UP
-								break;
-							}
-							case 3:
-							{
-								//Left
-								break;
-							}
-							default:
-								break;
-							}*/
 						}
-						if (changeRoom)
+
+						//PARA SABER A DONDE HA TIRADO AL PRINCIPIO
+						if (posX[0] == posX[1])
 						{
-							/*
-							auxPacket.clear();
-							auxPacket << PROTOCOLO::ROOMCHANGE;
-							auxPacket << playersConnecteds[iterador].id;
-							auxPacket << aux;
-							for (int i = 0; i < gamesProxy.size(); i++)
-							{
-								if (gamesProxy[i].id == playersConnecteds[iterador].idPartidaActual)
-								{
-									//Recorremos el vector de jugadores introduciendo el packet que deberemos enviar
-									for (int j = 0; j < gamesProxy[i].players.size(); j++)
-									{		
-										if ((playersConnecteds[gamesProxy[i].players[j].id - 1].Critic_Message.count(PROTOCOLO::ROOMCHANGE)==0))
-										{
-											mutex.lock();
-											playersConnecteds[gamesProxy[i].players[j].id - 1].Critic_Message.insert({ PROTOCOLO::ROOMCHANGE, Mensaje(playersConnecteds[iterador].id,auxPacket) });
-											mutex.unlock();
-										}
-									}
-
-								}
-							}
-
-							std::multimap<PROTOCOLO, Mensaje>::iterator it2 = playersConnecteds[iterador].Regular_Message.find(PROTOCOLO::MOVEMENT);
-							playersConnecteds[iterador].Regular_Message.erase(it2);
-							changeRoom = false;*/
+							startMovement = 0;
 						}
-						else if (OKMovement)
+						else
+						{
+							startMovement = 1;
+						}
+
+						if (OKMovement)
 						{
 
 							mutex.lock();
@@ -796,6 +731,7 @@ void SendRegularPack()
 								auxPacket << playersConnecteds[iterador].id;
 								auxPacket << playersConnecteds[iterador].posX;
 								auxPacket << playersConnecteds[iterador].posY;
+								auxPacket << startMovement;
 								for (int i = 0; i < gamesProxy.size(); i++)
 								{
 									if (gamesProxy[i].id == playersConnecteds[iterador].idPartidaActual)
@@ -1157,6 +1093,7 @@ void ClientReceive()
 	PlayerProxy teamMateAux;
 	int auxint=-1;
 	int auxSala = -1;
+	int startMovement = 0;
 	int salaAnterior = 0;
 
 	
@@ -1185,18 +1122,20 @@ void ClientReceive()
 			switch (orders)
 			{
 			case PROTOCOLO::WELCOME:
+			{
 				packRecieve >> proxy.id;
 				std::cout << proxy.id << "  aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa" << std::endl;
 				helloMessage = true;
 				//std::cout << "El servidor te da la bienvenida con el siguiente id: " << proxy.id << std::endl;
 				break;
+			}
 			case PROTOCOLO::LOGINACCEPTED:
-
+			{
 				packRecieve >> auxint;
 				packRecieve >> YouCanLogin;
 				//std::cout << "Me puedo conectar: " << YouCanLogin << std::endl;
 				if (YouCanLogin)
-				{					
+				{
 					packRecieve >> proxy.skin;
 					currentScene->finishSending = true;
 					sceneState = TypeScene::GOTO_MENU;
@@ -1208,12 +1147,14 @@ void ClientReceive()
 					sceneState = TypeScene::GOTO_LOG_IN;
 				}
 				break;
+			}
 			case PROTOCOLO::REGISTERACCEPTED:
+			{
 				packRecieve >> auxint;
 				packRecieve >> YouCanSignUp;
 				//std::cout << "Me puedo registrar: " << YouCanSignUp << std::endl;
 				if (YouCanSignUp)
-				{			
+				{
 					currentScene->finishSending = true;
 					sceneState = TypeScene::GOTO_MENU;
 				}
@@ -1223,10 +1164,14 @@ void ClientReceive()
 					sceneState = TypeScene::GOTO_SIGN_UP;
 				}
 				break;
+			}
 			case PROTOCOLO::WANTPLAYACCEPTED:
+			{
 				currentScene->finishSending = true;
 				break;
+			}
 			case PROTOCOLO::STARTGAME:
+			{
 				//En caso de no estar llena la llenamos
 				if (myGame.full == false)
 				{
@@ -1250,7 +1195,7 @@ void ClientReceive()
 					if (teamMateAux.id != proxy.id)
 					{
 						partnerSkin = teamMateAux.skin;
-						currentScene->partnerSala = 0;						
+						currentScene->partnerSala = 0;
 					}
 					currentScene->mySala = 0;
 					teamMateAux.idSalaActual = 0;
@@ -1263,14 +1208,15 @@ void ClientReceive()
 				packRecieve.clear();
 				packRecieve << PROTOCOLO::STARTGAMEACCEPTED;
 				if (socket.send(packRecieve, proxy.IP_Adress, proxy.port) == sf::Socket::Done)
-				{					
+				{
 					//currentScene->CloseWindow();
 					//std::cout << "Empieza partida " << std::endl;
 					currentScene->finishSending = true;
 					sceneState = TypeScene::GOTO_PLAY;
 				}
-					//Ponerme a mi
+				//Ponerme a mi
 				break;
+			}
 			case PROTOCOLO::MOVEMENT:
 			{
 				packRecieve >> auxint;
@@ -1289,8 +1235,20 @@ void ClientReceive()
 				packRecieve >> auxint;
 				packRecieve >> posX;
 				packRecieve >> posY;
+				packRecieve >> startMovement;
+
+				if (startMovement == 0)
+				{
+					std::cout << "El jugador ha empezado por el eje vertical" << std::endl;
+				}
+				else
+				{
+					std::cout << "El jugador ha empezado por el eje horizontal" << std::endl;
+				}
 				
-				currentScene->UpdatePartnerPosition(posX, posY);
+				std::cout << "Tengo que empezar por lo siguiente: " << startMovement << std::endl;
+				//currentScene->UpdatePartnerPosition(posX, posY);
+				currentScene->lerp(myGameScene->myCharacter->characterPosition.x, posX, myGameScene->myCharacter->characterPosition.y, posY, 0.4f, startMovement);
 				//Actualizar Posicion avatrares
 				//
 				//
