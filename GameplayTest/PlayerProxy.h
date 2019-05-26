@@ -15,6 +15,8 @@ public:
 	int id_cuenta;
 	int id_sesion;
 	int id_partida;
+	int counterPing;
+	float startTime=0;
 	std::string userName;
 	std::string password;
 	int skin;

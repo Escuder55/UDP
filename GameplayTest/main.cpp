@@ -216,27 +216,17 @@ bool IsInTheList(int id)
 //THREAD RECEIVE SERVER
 void ServerReceive()
 {
-	
-	//BD BaseDatos(HOSTBD, USERNAMEBD, PASSWORDBD, DATABASEBD);
+
 	BaseDatos = new BD(HOSTBD, USERNAMEBD, PASSWORDBD, DATABASEBD);
 	BaseDatos->InitBaseDatos();
 
 	map1 = BaseDatos->getMap1();
-	/*map2 = BaseDatos->getMap2();
-	map3 = BaseDatos->getMap3();*/
 
 	//// --------------------- BINARY TREES -------------------- ////
 	//BinaryTree BST;
 
 	//// -------------------- MONSTERS SALA -------------------- ////
 	map1.enemiesMap = BaseDatos->getMonsterMap1();
-	/*map2.enemiesMap = BaseDatos->getMonsterMap2();
-	map3.enemiesMap = BaseDatos->getMonsterMap3();*/
-
-	/*for (int i = 0; i < map1.enemiesMap.size(); i++)
-	{
-		//std::cout << "Enemigos: " << map1.enemiesMap[i].ID << " " << map1.enemiesMap[i].ID_Sala << " " << map1.enemiesMap[i].posX << " " << map1.enemiesMap[i].posY << std::endl;
-	}*/
 
 	
 	int auxSala;
@@ -405,6 +395,21 @@ void ServerReceive()
 				std::cout << "movemos al jugador con id: " << getId(adress, port) << " a la sala : " << auxSala << std::endl;			
 				break;
 			}
+			case PROTOCOLO::PONG:
+			{
+				mutex.lock();
+				if (playersConnecteds[getId(adress, port)].counterPing<=6)
+				{
+					playersConnecteds[getId(adress, port)].counterPing = 0;
+					std::cout << "Pongo el ping a 0" << std::endl;
+				}				
+				else 
+				{
+					playersConnecteds.erase(playersConnecteds.begin() + getId(adress, port));
+				}
+				mutex.unlock();
+				break;
+			}
 			default:
 					break;
 			}
@@ -429,6 +434,12 @@ void SendRegularPack()
 	std::string username;
 	std::string password;
 	std::string repeatPassword;
+
+	clock_t startTimePingPong;
+	clock_t endTimePingPong;
+	clock_t clockTicksTakenPingPong;
+	double timeInSecondsPingPong;
+
 
 	//KILLED MONSTERS
 	int KilledMonsters;
@@ -456,13 +467,33 @@ void SendRegularPack()
 	int tonteria = 0;
 	//////// --------------- INICIALIZAR EL RELOJ QUE COMPRUEBA EL MATCHMAKING  --------------- ////////
 	startTime = clock();
-
+	startTimePingPong = clock();
 
 	while (true)
 	{
+		endTimePingPong = clock();
+		clockTicksTakenPingPong = endTimePingPong - startTimePingPong;
+		timeInSecondsPingPong = clockTicksTakenPingPong / (double)CLOCKS_PER_SEC;
 
 		if (!playersConnecteds.empty())
 		{
+			//Realizamos ping
+			if ((timeInSecondsPingPong - playersConnecteds[iterador].startTime) > 5)
+			{
+				playersConnecteds[iterador].startTime = timeInSecondsPingPong;
+				auxPacket.clear();
+				auxPacket << PROTOCOLO::PING;
+				status = socket.send(auxPacket, playersConnecteds[iterador].IP_Adress, playersConnecteds[iterador].port);
+				if (status == sf::Socket::Status::Done)
+				{
+					mutex.lock();
+					playersConnecteds[iterador].counterPing++;					
+					std::cout << "He enviado ping, jugador con id :" << playersConnecteds[iterador].id << " lleva : " << playersConnecteds[iterador].counterPing << std::endl;
+					mutex.unlock();
+				}
+
+			}
+
 			tonteria = playersConnecteds[iterador].Regular_Message.size();
 			if (tonteria > 0)
 			{
@@ -823,7 +854,7 @@ void SendRegularPack()
 
 			/////////// -------------- HACER EL MATCHMAKING MAPA1-------------- //////////////
 			
-				if (playersWaitingMap1.size() >= 2)
+			if (playersWaitingMap1.size() >= 2)
 				{
 					//std::cout << "EMPIEZA LA PARTIDA" << std::endl;
 					gamesProxy.push_back({games,1,auxPlayers,auxEnemy});
@@ -886,42 +917,7 @@ void SendRegularPack()
 					}
 					
 				}
-				if (playersWaitingMap2.size() >= 2)
-				{
-					//crear partida y push
-					//std::cout << "EMPIEZA LA PARTIDA" << std::endl;
-					gamesProxy.push_back({ games,2,auxPlayers,auxEnemy });
-					games++;
 
-					//rellenar Players
-					for (int i = 0; i < 4; i++)
-					{
-					//rellenar Players
-
-					}
-					for (int i = 0; i < map1.enemiesMap.size(); i++)
-					{
-					//gamesProxy.back().EnemiesGame.pushback(map1.enemiesMap[i]);
-
-					}
-				}
-				if (playersWaitingMap3.size() >= 4)
-				{
-					//crear partida y push
-					//std::cout << "EMPIEZA LA PARTIDA" << std::endl;
-					gamesProxy.push_back({ games,3,auxPlayers,auxEnemy });
-					games++;
-						//rellenar Players
-					for (int i = 0; i < 4; i++)
-					{
-					
-
-					}
-					for (int i = 0; i < map1.enemiesMap.size(); i++)
-					{
-						//gamesProxy.back().EnemiesGame.pushback(map1.enemiesMap[i]);
-					}
-				}
 		}
 
 	}
@@ -1055,7 +1051,6 @@ void serverMain()
 	}
 	else
 	{
-		//std::cout << "Se hace bind bien con el puerto" << PORT << std::endl;
 	}
 
 	//THREAD RECEIVE
@@ -1310,67 +1305,16 @@ void ClientReceive()
 				}
 
 				//idjugador sala
-				/*packRecieve >> auxint;
-				std::cout << "id that changed :" <<auxint<< "myId :"<< proxy.id << std::endl;
-				packRecieve >> auxSala;
-				if (proxy.id == auxint)
-				{
-					std::cout << "Me he de cambiar yo" << std::endl;
-					if (auxSala != proxy.idSalaActual)
-					{
-						salaAnterior = proxy.idSalaActual;
-						currentScene->currentBackground = auxSala;
-						currentScene->mySala = auxSala;
-						proxy.idSalaActual = auxSala;
-
-						//CAMBIAMOS LA POSX Y POSY SEGUN LA SALA
-						std::cout << "La sala anterior: " << salaAnterior << std::endl;
-						std::cout << "La sala siguiente sala: " << proxy.idSalaActual << std::endl;
-
-						switch (salaAnterior)
-						{
-						case 0:
-						{
-							if (proxy.idSalaActual == 1)
-							{
-
-							}
-							else if (proxy.idSalaActual == 2)
-							{
-								myGameScene->myCharacter->CharacterChangeRoom(SCREEN_WIDTH / 2, 100.f);
-							}
-							break;
-						}
-						case 1:
-						{
-							break;
-						}
-						case 2:
-						{
-							break;
-						}
-						case 3:
-						{
-							break;
-						}
-						default:
-						{
-							break;
-						}
-						}
-					}
-				}				
-				else 
-				{
-					currentScene->partnerSala = auxSala;
-					std::cout << "ME CAGO EN TO LOKO" << std::endl;
-				}
-
-				//enviamos para que pare de enviar
+				break;
+			}
+			case PROTOCOLO::PING:
+			{
 				packRecieve.clear();
-				packRecieve << PROTOCOLO::ROOMCHANGE;
-				packRecieve << auxint;
-				socket.send(packRecieve,IP_CLASE,PORT);*/
+				packRecieve << PROTOCOLO::PONG;
+				if (socket.send(packRecieve, proxy.IP_Adress, proxy.port) == sf::Socket::Status::Done)
+				{
+					std::cout << "respondemos con pong" << std::endl;
+				}
 				break;
 			}
 			default:
