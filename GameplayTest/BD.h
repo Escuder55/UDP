@@ -38,6 +38,9 @@ public:
 	int getSesionOfId(int cuenta);
 	void InicioPartida(int sesion);
 	int getPartidaActual(int sesion);
+	void UpdatePartida(int idPartida);
+
+
 	//MAPA
 	MapaGame getMap1();
 	MapaGame getMap2();

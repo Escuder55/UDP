@@ -114,6 +114,73 @@ Scene* currentScene;
 
 ///////Struct para el game
 
+//MONSTRUOS/////////////////////////////////////////////
+
+struct enemiesInGame
+{
+	float posX;
+	float posY;
+	float idSala;
+};
+
+enemiesInGame enemies[5];
+
+void initializeEnemies()
+{
+	//1
+	enemies[0].idSala = 0;
+	enemies[0].posX = (DOOR_LEFT_POS_X + 45) + 50.f;
+	enemies[0].posY = 160.f;
+	//2
+	enemies[1].idSala = 0;
+	enemies[1].posX = (DOOR_LEFT_POS_X + 45) + 600.f;
+	enemies[1].posY = 270.f;
+	//3
+	enemies[2].idSala = 1;
+	enemies[2].posX = (DOOR_LEFT_POS_X + 45) + 250.f;
+	enemies[2].posY = 100.f;
+	//4
+	enemies[3].idSala = 2;
+	enemies[3].posX = (DOOR_LEFT_POS_X + 45) + 100.f;
+	enemies[3].posY = 350.f;
+	//5
+	enemies[4].idSala = 3;
+	enemies[4].posX = (DOOR_LEFT_POS_X + 45) + 500.f;
+	enemies[4].posY = 350.f;
+}
+
+bool Collision(int x1, int y1, int h1, int w1, int x2, int y2, int h2, int w2) {
+
+	//Eje vertical
+	if ((x1 < x2 + w2) && (x1 > x2) || (x1 + w1 > x2) && (x1 + w1 < (x2 + w2)))
+	{
+		if ((y1 < y2 + h2) && (y1 > y2) || (y1 + h1 < (y2 + h2)) && (y1 + h1 > y2))
+		{
+			return 1;
+		}
+	}
+
+
+	return 0;
+}
+
+bool colissionEnemies(int posX, int posY, int sala)
+{
+	for (int i = 0; i < 5; i++)
+	{
+		if (sala == enemies[i].idSala)
+		{
+			if (Collision(posX, posY, SPRITE_CHARACTER_HEIGHT, SPRITE_CHARACTER_WIDTH, enemies[i].posX + 20, enemies[i].posY, ENEMYHEIGHT - 25, ENEMYWIDTH - 40))
+			{
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
+/////////////////////////////////////////////////////////
+
 struct gameProxy
 {
 	int id;
@@ -173,6 +240,28 @@ int SQLSkin;
 MapaGame map1;
 MapaGame map2;
 MapaGame map3;
+
+/////////////// -------------------- BUBBLE SORT ------------------------- /////////////
+void bubbleSort(std::vector<waitingPlayer> &a)
+{
+	bool swapp = true;
+	while (swapp)
+	{
+		swapp = false;
+		for (int i = 0; i < a.size() - 1; i++)
+		{
+			if (a[i].numEnemies > a[i + 1].numEnemies)
+			{
+				a[i].numEnemies += a[i + 1].numEnemies;
+				a[i + 1].numEnemies = a[i].numEnemies - a[i + 1].numEnemies;
+				a[i].numEnemies -= a[i + 1].numEnemies;
+				swapp = true;
+			}
+		}
+	}
+}
+
+
 
 
 ///////////--------------- COMPROBAR SI YA ESTA ESPERANDO PARTIDA --------------- ////////////
@@ -973,11 +1062,15 @@ void SendRegularPack()
 			int playerForMap3 = 0;
 			int idPlayers[4] = {-1,-1,-1,-1};
 			//Ordenamos maps wantplay de cada mapa
+			/*if (!playersWaitingMap1.empty())
+			{
+				bubbleSort(playersWaitingMap1);
+			}*/
 
 			/////////// -------------- HACER EL MATCHMAKING MAPA1-------------- //////////////
 			
 			if (playersWaitingMap1.size() >= 2)
-				{
+			{
 					//std::cout << "EMPIEZA LA PARTIDA" << std::endl;
 					gamesProxy.push_back({games,1,auxPlayers,auxEnemy});
 					games++;

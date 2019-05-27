@@ -22,6 +22,10 @@
 	#define SPRITE_CHARACTER_WIDTH 52
 	#define SPRITE_CHARACTER_HEIGHT 72
 
+//Defines/////////////////////////////
+#define ENEMYWIDTH 62
+#define ENEMYHEIGHT 62
+
 ///////////////////// CONEXIONES
 #define MAX_MENSAJES 30
 #define IP "192.168.56.1"

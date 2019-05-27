@@ -472,7 +472,6 @@ void Game::DrawText()
 
 void Game::UpdateHUD(int _live, int _ID_Sala)
 {
-	partnerLive = _live;
 	HUDText = "PLAYER 2(ID): " + std::to_string(partnerID) + "		LIVE: " + std::to_string(_live) + "		ROOM: " + std::to_string(partnerSala);
 	PartnerText.setString(HUDText);
 }

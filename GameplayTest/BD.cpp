@@ -735,6 +735,14 @@ int BD::getPartidaActual(int sesion)
 	return 0;
 }
 
+void BD::UpdatePartida(int idPartida)
+{
+	prep_stmt = conn->prepareStatement("UPDATE partida SET final = CURRENT_TIMESTAMP() WHERE id_partida = ?");
+	prep_stmt->setInt(1, idPartida);
+	res = prep_stmt->executeQuery();
+
+}
+
 BD::~BD()
 {
 	conn->close();
