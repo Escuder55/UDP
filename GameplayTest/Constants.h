@@ -29,7 +29,7 @@
 //#define IP_CLASE "10.40.0.99"
 #define IP_CLASE "127.0.0.1"
 //#define PORT 50000
-#define PORT 50001
+#define PORT 52000
 
 enum Direcciones
 {

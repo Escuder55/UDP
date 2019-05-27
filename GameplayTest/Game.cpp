@@ -21,8 +21,8 @@ Game::Game(CharacterType myCharacterType, float _posX, float _posY, sf::UdpSocke
 	partnerSkin = skin;
 
 	//Ghosts Init//////////////////////
-	AddGhots((DOOR_LEFT_POS_X + 45) + 230.f, 160.f, 1, 0);
-	AddGhots((DOOR_LEFT_POS_X + 45) + 400.f, 270.f, 2, 0);
+	AddGhots((DOOR_LEFT_POS_X + 45) + 50, 160.f, 1, 0);
+	AddGhots((DOOR_LEFT_POS_X + 45) + 600.f, 270.f, 2, 0);
 	AddGhots((DOOR_LEFT_POS_X + 45) + 250.f, 100.f, 3, 1);
 	AddGhots((DOOR_LEFT_POS_X + 45) + 100.f, 350.f, 4, 2);
 	AddGhots((DOOR_LEFT_POS_X + 45) + 500.f, 350.f, 5, 3);
@@ -34,6 +34,7 @@ Game::Game(CharacterType myCharacterType, float _posX, float _posY, sf::UdpSocke
 
 	//////////////////////////////////////////cargamos todos los sprites
 	InitSprites();
+	InitText();
 	InitWindow();
 }
 
@@ -176,6 +177,21 @@ void Game::InitSprites()
 	doors[3].setPosition(sf::Vector2f(DOOR_LEFT_POS_X, DOOR_LEFT_POS_Y));
 	doors[3].setScale(sf::Vector2f(0.5, 0.5));
 
+}
+
+void Game::InitText()
+{
+	if (!myFont.loadFromFile("res/fonts/courbd.ttf"))
+	{
+		std::cout << "Can't load the font file" << std::endl;
+	}
+	PartnerText.setFont(myFont);	
+	HUDText = "PLAYER 2(ID): " + std::to_string(partnerID) + "\n		LIVE: " + std::to_string(partnerLive) + "\n		ROOM: " + std::to_string(partnerSala);
+	PartnerText.setString(HUDText);
+	PartnerText.setCharacterSize(30);
+	PartnerText.setFillColor(sf::Color(0, 255, 0));
+	PartnerText.setStyle(sf::Text::Bold);
+	PartnerText.setPosition(SCREEN_WIDTH - 300, 30);
 }
 
 TypeScene Game::DrawScene()
@@ -337,7 +353,13 @@ TypeScene Game::DrawScene()
 		}
 		}
 
+		/////////---- HUUD ------ ///////////
+		DrawText();
 		DrawEnemies();
+
+		/////////---- PARTNER BULLETS ------ ///////////
+
+		DrawBullets();
 
 		window.display();
 	}
@@ -438,4 +460,38 @@ void Game::AddGhots(float _posX, float _posY, int _ID, int _IDSala)
 	Ghost *aux;
 	aux = new Ghost(_posX, _posY, _IDSala, _ID);
 	enemies.push_back(aux);
+}
+
+void Game::DrawText()
+{
+	HUDText = "PLAYER 2(ID): " + std::to_string(partnerID) + "\n		LIVE: " + std::to_string(partnerLive) + "\n		ROOM: " + std::to_string(partnerSala);
+	PartnerText.setString(HUDText);
+
+	window.draw(PartnerText);
+}
+
+void Game::UpdateHUD(int _live, int _ID_Sala)
+{
+	partnerLive = _live;
+	HUDText = "PLAYER 2(ID): " + std::to_string(partnerID) + "		LIVE: " + std::to_string(_live) + "		ROOM: " + std::to_string(partnerSala);
+	PartnerText.setString(HUDText);
+}
+
+void Game::DrawBullets()
+{
+	if (partnerBullets.size() > 0)
+	{
+		for (int i = 0; i < partnerBullets.size(); i++)
+		{
+
+			partnerBullets[i]->DrawBullet(&window);
+		}
+	}
+}
+
+void Game::AddNewBullet(float _posX, float _posY, Direcciones _Direction)
+{
+	sf::Vector2f pos{ _posX, _posY };
+	auxBullet = new Bullet(pos, _Direction);
+	partnerBullets.push_back(auxBullet);
 }

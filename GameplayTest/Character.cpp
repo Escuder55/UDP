@@ -326,24 +326,40 @@ void Character::UpdateCharacterPosition(sf::Keyboard::Key _keyPressed, bool _pre
 			auxBullet = new Bullet(characterSprite.getPosition(), Direcciones::UP);
 			myBullets.push_back(auxBullet);
 			enviarDisparo = true;
+			
+			ShotPacket.clear();
+
+			SendPacket(Direcciones::UP);
+
 		break;
 
 	case RIGHT:
 			auxBullet = new Bullet(characterSprite.getPosition(), Direcciones::RIGHT);
 			myBullets.push_back(auxBullet);
 			enviarDisparo = true;
+
+			ShotPacket.clear();
+
+			SendPacket(Direcciones::RIGHT);
 		break;
 
 	case DOWN:
 			auxBullet = new Bullet(characterSprite.getPosition(), Direcciones::DOWN);
 			myBullets.push_back(auxBullet);
 			enviarDisparo = true;
+
+			ShotPacket.clear();
+
+			SendPacket(Direcciones::DOWN);
 		break;
 
 	case LEFT:
 			auxBullet = new Bullet(characterSprite.getPosition(), Direcciones::LEFT);
 			myBullets.push_back(auxBullet);
 			enviarDisparo = true;
+			ShotPacket.clear();
+
+			SendPacket(Direcciones::LEFT);
 		break;
 
 	default:
@@ -422,6 +438,19 @@ bool Character::collisionUpAll()
 	}
 	return false;
 }
+
+void Character::SendPacket(Direcciones _Direction)
+{
+	ShotPacket << PROTOCOLO::SHOT;
+	ShotPacket << characterPosition.x << characterPosition.y << _Direction;
+
+	if (socket->send(ShotPacket, IP_CLASE, PORT) != sf::Socket::Done)
+	{
+		std::cout << "No se Ha enviado bien el Paquete del Disparo" << std::endl;
+	}
+
+}
+
 
 bool Character::hoverRightDoor(float x, float y)
 {

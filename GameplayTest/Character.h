@@ -44,6 +44,8 @@ public:
 	bool collisionRightAll();
 	bool collisionUpAll();
 
+	void SendPacket(Direcciones _Direction);
+
 	sf::Vector2f characterPosition;
 
 private:
@@ -86,5 +88,6 @@ private:
 
 	Bullet* auxBullet;
 	std::vector<Bullet*> myBullets;
+
 };
 

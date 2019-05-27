@@ -10,6 +10,7 @@ public:
 	Game(CharacterType myCharacterType, float _posX, float _posY, sf::UdpSocket *sock, int skin);
 	~Game();
 	void InitSprites();
+	void InitText();
 	TypeScene DrawScene();
 	void InputControl(sf::RenderWindow* window);
 	void DrawSprites();
@@ -26,6 +27,13 @@ public:
 
 	void DrawEnemies();
 	void AddGhots(float _posX, float _posY, int _ID, int _IDSala);
+	void DrawText();
+	void UpdateHUD(int _live, int _ID_Sala);
+	/////////////////// Funicones de los disparos del compañero
+
+	void DrawBullets();
+	void AddNewBullet(float _posX, float _posY, Direcciones _Direction);
+	
 
 private:
 	sf::Texture  bgTexture[4];
@@ -33,6 +41,8 @@ private:
 	sf::Sprite background[4];
 	sf::Sprite doors[4];
 	sf::UdpSocket *socket;
+
+
 
 
 	TypeScene myTypeScene;

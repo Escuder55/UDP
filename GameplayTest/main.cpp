@@ -41,6 +41,7 @@ PROTOCOLO orders;
 //////////////////////////////////////////	VARIABLES PARA EL CLIENTE
 sf::Socket::Status status;
 sf::Packet pack;
+sf::Packet packDisparo;
 sf::UdpSocket socket;
 PlayerProxy proxy;
 
@@ -211,7 +212,8 @@ bool IsInTheList(int id)
 }
 
 //Comprobar cambio room//////////////////////////////////////////////////////////////////////
-
+float auxShotPosX, auxShotPosy;
+int auxDirectionInt;
 
 //THREAD RECEIVE SERVER
 void ServerReceive()
@@ -233,6 +235,8 @@ void ServerReceive()
 	int auxIdToRemovePack;
 	std::cout << "ENTRO EN EL THREAD" << std::endl;
 
+
+	Direcciones auxDirection;
 	while (true)
 	{
 		pack.clear();
@@ -259,6 +263,7 @@ void ServerReceive()
 
 			bool newPlayer = true;
 			int currentId;
+
 
 			switch (orders)
 			{
@@ -405,10 +410,41 @@ void ServerReceive()
 				}				
 				else 
 				{
+
+					///// ------- Enviamos Desconexion al resto de usuarios -------- ///////
+					pack << PROTOCOLO::DISCONECTED;
+					pack << playersConnecteds[getId(adress, port)].id;
+					
+					for (int i = 0; i < gamesProxy[playersConnecteds[getId(adress, port)].idPartidaActual].players.size() ; i++)
+					{
+						gamesProxy[playersConnecteds[getId(adress, port)].idPartidaActual].players[i].Critic_Message.insert({ PROTOCOLO::DISCONECTED,Mensaje(playersConnecteds[getId(adress, port)].id,pack) });
+					}
+
+
 					playersConnecteds.erase(playersConnecteds.begin() + getId(adress, port));
+
 				}
 				mutex.unlock();
 				break;
+			}
+			case PROTOCOLO::SHOT:
+			{
+				pack >> auxShotPosX >> auxShotPosy;
+				pack >> auxDirectionInt;
+
+				std::cout << "EL USUARIO: " << getId(adress, port)+1 << " HA DISPARADO DESDE LA POSICION: " <<
+					auxShotPosX << " | " << auxShotPosy << " HA DISPARADO EN LA DIRECCIÓN: " << auxDirectionInt << std::endl;
+				pack.clear();
+				pack << PROTOCOLO::SHOT << auxShotPosX << auxShotPosy << auxDirectionInt;
+
+				for (int i = 0; i < playersConnecteds.size(); i++)
+				{
+					if (playersConnecteds[i].idPartidaActual == playersConnecteds[getId(adress,port)].idPartidaActual &&
+						playersConnecteds[i].id != playersConnecteds[getId(adress, port)].id)
+					{
+						playersConnecteds[i].Regular_Message.insert({ PROTOCOLO::SHOT, Mensaje(playersConnecteds[i].counterPacket, pack) });
+					}
+				}
 			}
 			default:
 					break;
@@ -548,6 +584,12 @@ void SendRegularPack()
 					auxProtocolo = PROTOCOLO::TEAMPOSITION;
 					////std::cout << "6" << std::endl;
 				}
+				if (aux < playersConnecteds[iterador].Regular_Message.count(PROTOCOLO::SHOT))
+				{
+					aux = playersConnecteds[iterador].Regular_Message.count(PROTOCOLO::SHOT);
+					auxProtocolo = PROTOCOLO::SHOT;
+					////std::cout << "6" << std::endl;
+				}
 
 				switch (auxProtocolo)
 				{
@@ -564,6 +606,7 @@ void SendRegularPack()
 						mutex.lock();
 						playersConnecteds[iterador].Regular_Message.erase(auxProtocolo);
 						mutex.unlock();
+
 						break;
 					}
 					case REGISTER:
@@ -617,6 +660,10 @@ void SendRegularPack()
 								playersConnecteds[iterador].id_cuenta = BaseDatos->getIdCuenta(SQLusername, SQLpassword);
 								//std::cout << "Enemigos matados: " << KilledMonsters << std::endl;
 								playersConnecteds[iterador].NumEnemigos = KilledMonsters;
+
+								//NUEVA SESION
+								BaseDatos->InicioSesion(playersConnecteds[iterador].id_cuenta);
+								playersConnecteds[iterador].id_sesion = BaseDatos->getSesionOfId(playersConnecteds[iterador].id_cuenta);
 							}
 						}
 
@@ -812,6 +859,20 @@ void SendRegularPack()
 						//Enviamos confirmacion
 						playersConnecteds[iterador].Regular_Message.erase(PROTOCOLO::ROOMCHANGE);
 						std::cout << "Enviamos la confirmacion del cambio de sala" << std::endl;
+						break;
+					}
+					case SHOT:
+					{
+						if (socket.send(playersConnecteds[iterador].Regular_Message.find(auxProtocolo)->second.pack, playersConnecteds[iterador].IP_Adress, playersConnecteds[iterador].port) == sf::Socket::Done)
+						{
+							auxPacket = playersConnecteds[iterador].Regular_Message.find(auxProtocolo)->second.pack;
+							auxPacket >> auxId >> auxShotPosX >> auxShotPosy << auxDirectionInt;
+							std::cout << "Se envia el deisparo a la posicion: " << auxShotPosX << " | " << auxShotPosy << " En la direccion " << auxDirectionInt << std::endl;
+
+							mutex.lock();
+							playersConnecteds[iterador].Regular_Message.erase(auxProtocolo);
+							mutex.unlock();
+						}
 						break;
 					}
 					default:
@@ -1072,12 +1133,13 @@ float posX, posY;
 //THREAD RECEIVE CLIENT
 int partnerSkin;
 
+PlayerProxy teamMateAux;
+
 void ClientReceive()
 {
 	sf::IpAddress auxIP;
 	unsigned short auxport;
 	sf::Packet packRecieve;
-	PlayerProxy teamMateAux;
 	int auxint=-1;
 	int auxSala = -1;
 	int startMovement = 0;
@@ -1202,6 +1264,8 @@ void ClientReceive()
 					sceneState = TypeScene::GOTO_PLAY;
 				}
 				//Ponerme a mi
+
+				std::cout << "LA PARTIDA EMPIEZA !!!!!!!!!!!!!!!!!!!!!!!" << std::endl;
 				break;
 			}
 			case PROTOCOLO::MOVEMENT:
@@ -1315,6 +1379,19 @@ void ClientReceive()
 				{
 					std::cout << "respondemos con pong" << std::endl;
 				}
+				break;
+			}
+			case PROTOCOLO::SHOT:
+			{
+				packRecieve >> auxShotPosX >> auxShotPosy;
+				packRecieve >> auxDirectionInt;
+
+				std::cout << "EL USUARIO CONTRARIO HA DISPARADO DESDE LA POSICION: " <<
+					auxShotPosX << " | " << auxShotPosy << " HA DISPARADO EN LA DIRECCIÓN: " << auxDirectionInt << std::endl;
+
+				Direcciones aux = static_cast<Direcciones>(auxDirectionInt);
+				myGameScene->AddNewBullet(auxShotPosX, auxShotPosy, aux);
+				
 				break;
 			}
 			default:
@@ -1457,7 +1534,7 @@ void clienteMain()
 			sceneState = TypeScene::PLAY;
 			auxType = static_cast<CharacterType>(proxy.skin);
 			currentScene = myGameScene = new Game(auxType,posX,posY, &socket, partnerSkin);
-			
+			currentScene->SetPArtnerId(teamMateAux.id);
 			currentScene->me = proxy;
 			break;
 		default:

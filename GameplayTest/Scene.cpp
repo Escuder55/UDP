@@ -101,6 +101,23 @@ void Scene::lerp(float Xinicial, float Xfinal, float Yinicial, float Yfinal, flo
 	}
 }
 
+void Scene::SetPArtnerId(int _ID)
+{
+	partnerID = _ID;
+}
+
+void Scene::InitText()
+{
+}
+
+void Scene::UpdateHUD(int _live, int _ID_Sala)
+{
+}
+
+void Scene::AddNewBullet(float _posX, float _posY, Direcciones _Direction)
+{
+}
+
 void Scene::InputControl(sf::RenderWindow * window)
 {
 }
