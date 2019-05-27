@@ -28,7 +28,7 @@ void Maps::InitSprites()
 		std::cout << "Cannot Load the image" << std::endl;
 	}
 	map1Sprite.setTexture(map1Texture);
-	map1Sprite.setPosition(SCREEN_WIDTH / 2 - 100, SCREEN_HEIGHT / 2 - 200);
+	map1Sprite.setPosition(SCREEN_WIDTH / 2- 100 , SCREEN_HEIGHT / 2 );
 
 	/////////////////////////////////////////////////////////////MAP 2
 	/*if (!map2Texture.loadFromFile("res/img/Button_Map2.png"))

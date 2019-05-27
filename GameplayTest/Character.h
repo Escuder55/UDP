@@ -18,7 +18,7 @@ class Character
 public:
 	
 	Character();
-	Character(CharacterType _myCharacter, sf::UdpSocket *sock);
+	Character(CharacterType _myCharacter, sf::UdpSocket *sock, int _ID, int _IDSala);
 	~Character();
 	void InitSprites();
 	void DrawCharacter(sf::RenderWindow * window);
@@ -47,6 +47,9 @@ public:
 	void SendPacket(Direcciones _Direction);
 
 	sf::Vector2f characterPosition;
+
+	int ID;
+	int IDSala;
 
 private:
 	sf::Texture cTexture;

@@ -7,11 +7,13 @@ class Bullet
 {
 public:
 	Bullet();
-	Bullet(sf::Vector2f _position, Direcciones _currentDirection);
+	Bullet(sf::Vector2f _position, Direcciones _currentDirection,int _ID, int _IDSala);
 	~Bullet();
 
 	void DrawBullet(sf::RenderWindow * window);
 	void UpdateBullet();
+	int ID;
+	int IDSala;
 
 private:
 

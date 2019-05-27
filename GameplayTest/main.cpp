@@ -219,6 +219,7 @@ int auxDirectionInt;
 void ServerReceive()
 {
 
+
 	BaseDatos = new BD(HOSTBD, USERNAMEBD, PASSWORDBD, DATABASEBD);
 	BaseDatos->InitBaseDatos();
 
@@ -422,13 +423,19 @@ void ServerReceive()
 			}
 			case PROTOCOLO::SHOT:
 			{
+
+				mutex.lock();
+				pack >> auxId >> auxSala;
 				pack >> auxShotPosX >> auxShotPosy;
 				pack >> auxDirectionInt;
 
+				std::cout << "El Usuario con Id: " << auxId << "       Esta en la sala ID: " << auxSala << std::endl;
 				std::cout << "EL USUARIO: " << getId(adress, port)+1 << " HA DISPARADO DESDE LA POSICION: " <<
 					auxShotPosX << " | " << auxShotPosy << " HA DISPARADO EN LA DIRECCIÓN: " << auxDirectionInt << std::endl;
 				pack.clear();
-				pack << PROTOCOLO::SHOT << auxShotPosX << auxShotPosy << auxDirectionInt;
+				pack << PROTOCOLO::SHOT << auxId << auxSala <<auxShotPosX << auxShotPosy << auxDirectionInt;
+				mutex.unlock();
+
 
 				for (int i = 0; i < playersConnecteds.size(); i++)
 				{
@@ -902,7 +909,7 @@ void SendRegularPack()
 						if (socket.send(playersConnecteds[iterador].Regular_Message.find(auxProtocolo)->second.pack, playersConnecteds[iterador].IP_Adress, playersConnecteds[iterador].port) == sf::Socket::Done)
 						{
 							auxPacket = playersConnecteds[iterador].Regular_Message.find(auxProtocolo)->second.pack;
-							auxPacket >> auxId >> auxShotPosX >> auxShotPosy << auxDirectionInt;
+							auxPacket >> auxId >> auxId >> auxShotPosX >> auxShotPosy >> auxDirectionInt;
 							std::cout << "Se envia el deisparo a la posicion: " << auxShotPosX << " | " << auxShotPosy << " En la direccion " << auxDirectionInt << std::endl;
 
 							mutex.lock();
@@ -1314,6 +1321,9 @@ void ClientReceive()
 				//Hacemos send de vuelta para que pare de enviar el critico.
 				packRecieve.clear();
 				packRecieve << PROTOCOLO::STARTGAMEACCEPTED;
+
+				
+
 				if (socket.send(packRecieve, proxy.IP_Adress, proxy.port) == sf::Socket::Done)
 				{
 					//currentScene->CloseWindow();
@@ -1436,6 +1446,9 @@ void ClientReceive()
 
 				
 					std::cout << "Me he de cambiar yo" << " Sala : " << auxSala << std::endl;
+
+					myGameScene->myCharacter->IDSala = auxSala;
+
 					switch (currentScene->mySala)
 					{
 					case 0:
@@ -1496,11 +1509,13 @@ void ClientReceive()
 			}
 			case PROTOCOLO::SHOT:
 			{
+
+				packRecieve >> auxId << auxId;
 				packRecieve >> auxShotPosX >> auxShotPosy;
 				packRecieve >> auxDirectionInt;
 
-				//std::cout << "EL USUARIO CONTRARIO HA DISPARADO DESDE LA POSICION: " <<
-					//auxShotPosX << " | " << auxShotPosy << " HA DISPARADO EN LA DIRECCIÓN: " << auxDirectionInt << std::endl;
+				std::cout << "EL USUARIO CONTRARIO HA DISPARADO DESDE LA POSICION: " <<
+					auxShotPosX << " | " << auxShotPosy << " HA DISPARADO EN LA DIRECCIÓN: " << auxDirectionInt << std::endl;
 
 				Direcciones aux = static_cast<Direcciones>(auxDirectionInt);
 				myGameScene->AddNewBullet(auxShotPosX, auxShotPosy, aux);
@@ -1649,8 +1664,10 @@ void clienteMain()
 			sceneState = TypeScene::PLAY;
 			auxType = static_cast<CharacterType>(proxy.skin);
 			currentScene = myGameScene = new Game(auxType,posX,posY, &socket, partnerSkin);
+			currentScene->me.id = proxy.id;
 			currentScene->SetPArtnerId(teamMateAux.id);
 			currentScene->me = proxy;
+			myGameScene->InitCharacter();
 			break;
 		default:
 			break;

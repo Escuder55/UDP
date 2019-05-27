@@ -9,6 +9,7 @@ Game::Game()
 
 Game::Game(CharacterType myCharacterType, float _posX, float _posY, sf::UdpSocket *sock, int skin)
 {
+	
 	startTime = clock();
 	//Guardamos socket
 	socket = sock;
@@ -27,10 +28,8 @@ Game::Game(CharacterType myCharacterType, float _posX, float _posY, sf::UdpSocke
 	AddGhots((DOOR_LEFT_POS_X + 45) + 100.f, 350.f, 4, 2);
 	AddGhots((DOOR_LEFT_POS_X + 45) + 500.f, 350.f, 5, 3);
 
-	/////////////////////////////////////////////inicializamos el Character con el typo que le hayamos pasado,
-	/////////////////////////////////////////////en un futuro esta inicialización tendrá que ser con la skin que 
-	/////////////////////////////////////////////tenga el jugador en su base de datos
-	myCharacter = new Character(myCharacterType, sock);
+	charType = myCharacterType;
+
 
 	//////////////////////////////////////////cargamos todos los sprites
 	InitSprites();
@@ -478,6 +477,14 @@ void Game::UpdateHUD(int _live, int _ID_Sala)
 	PartnerText.setString(HUDText);
 }
 
+void Game::InitCharacter()
+{
+/////////////////////////////////////////////inicializamos el Character con el typo que le hayamos pasado,
+/////////////////////////////////////////////en un futuro esta inicialización tendrá que ser con la skin que 
+/////////////////////////////////////////////tenga el jugador en su base de datos
+	myCharacter = new Character(charType, socket, me.id, mySala);
+}
+
 void Game::DrawBullets()
 {
 	if (partnerBullets.size() > 0)
@@ -485,7 +492,11 @@ void Game::DrawBullets()
 		for (int i = 0; i < partnerBullets.size(); i++)
 		{
 
-			partnerBullets[i]->DrawBullet(&window);
+			if (partnerBullets[i]->IDSala == mySala)
+			{
+
+				partnerBullets[i]->DrawBullet(&window);
+			}
 		}
 	}
 }
@@ -493,6 +504,6 @@ void Game::DrawBullets()
 void Game::AddNewBullet(float _posX, float _posY, Direcciones _Direction)
 {
 	sf::Vector2f pos{ _posX, _posY };
-	auxBullet = new Bullet(pos, _Direction);
+	auxBullet = new Bullet(pos, _Direction, partnerID, partnerSala);
 	partnerBullets.push_back(auxBullet);
 }

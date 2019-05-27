@@ -6,8 +6,10 @@ Bullet::Bullet()
 {
 }
 
-Bullet::Bullet(sf::Vector2f _position, Direcciones _currentDirection)
+Bullet::Bullet(sf::Vector2f _position, Direcciones _currentDirection, int _ID, int _IDSala)
 {
+	ID = _ID;
+	IDSala = _IDSala;
 	////////////////////en funcion de la direccion en la que disparemos haremso spawn del proyectil en una posicion determinada
 	if (_currentDirection == Direcciones::RIGHT)
 	{

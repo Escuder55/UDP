@@ -25,10 +25,13 @@ public:
 	int partnerSkin;
 	Character* myCharacter;
 
+	CharacterType charType;
+
 	void DrawEnemies();
 	void AddGhots(float _posX, float _posY, int _ID, int _IDSala);
 	void DrawText();
 	void UpdateHUD(int _live, int _ID_Sala);
+	void InitCharacter();
 	/////////////////// Funicones de los disparos del compañero
 
 	void DrawBullets();

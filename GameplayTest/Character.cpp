@@ -6,8 +6,10 @@ Character::Character()
 {
 }
 
-Character::Character(CharacterType _myCharacter, sf::UdpSocket *sock)
+Character::Character(CharacterType _myCharacter, sf::UdpSocket *sock, int _ID, int _IDSala)
 {
+	ID = _ID;
+	IDSala = _IDSala;
 	//Nos guardamos el socket
 	socket = sock;
 	//
@@ -170,8 +172,10 @@ void Character::DrawBullets(sf::RenderWindow * window)
 	{
 		for (int i = 0; i < myBullets.size(); i++)
 		{
-
-			myBullets[i]->DrawBullet(window);
+			if (IDSala == myBullets[i]->IDSala)
+			{
+				myBullets[i]->DrawBullet(window);
+			}
 		}
 	}
 
@@ -323,7 +327,7 @@ void Character::UpdateCharacterPosition(sf::Keyboard::Key _keyPressed, bool _pre
 		break;
 
 	case UP:
-			auxBullet = new Bullet(characterSprite.getPosition(), Direcciones::UP);
+			auxBullet = new Bullet(characterSprite.getPosition(), Direcciones::UP, ID, IDSala);
 			myBullets.push_back(auxBullet);
 			enviarDisparo = true;
 			
@@ -334,7 +338,7 @@ void Character::UpdateCharacterPosition(sf::Keyboard::Key _keyPressed, bool _pre
 		break;
 
 	case RIGHT:
-			auxBullet = new Bullet(characterSprite.getPosition(), Direcciones::RIGHT);
+			auxBullet = new Bullet(characterSprite.getPosition(), Direcciones::RIGHT, ID, IDSala);
 			myBullets.push_back(auxBullet);
 			enviarDisparo = true;
 
@@ -344,7 +348,7 @@ void Character::UpdateCharacterPosition(sf::Keyboard::Key _keyPressed, bool _pre
 		break;
 
 	case DOWN:
-			auxBullet = new Bullet(characterSprite.getPosition(), Direcciones::DOWN);
+			auxBullet = new Bullet(characterSprite.getPosition(), Direcciones::DOWN, ID, IDSala);
 			myBullets.push_back(auxBullet);
 			enviarDisparo = true;
 
@@ -354,7 +358,7 @@ void Character::UpdateCharacterPosition(sf::Keyboard::Key _keyPressed, bool _pre
 		break;
 
 	case LEFT:
-			auxBullet = new Bullet(characterSprite.getPosition(), Direcciones::LEFT);
+			auxBullet = new Bullet(characterSprite.getPosition(), Direcciones::LEFT, ID, IDSala);
 			myBullets.push_back(auxBullet);
 			enviarDisparo = true;
 			ShotPacket.clear();
@@ -442,8 +446,10 @@ bool Character::collisionUpAll()
 void Character::SendPacket(Direcciones _Direction)
 {
 	ShotPacket << PROTOCOLO::SHOT;
-	ShotPacket << characterPosition.x << characterPosition.y << _Direction;
+	ShotPacket << ID << IDSala << characterPosition.x << characterPosition.y << _Direction;
 
+	std::cout << ID << " | " << IDSala << std::endl;
+	std::cout << characterPosition.x << " | " << characterPosition.y << std::endl;
 	if (socket->send(ShotPacket, IP_CLASE, PORT) != sf::Socket::Done)
 	{
 		std::cout << "No se Ha enviado bien el Paquete del Disparo" << std::endl;
