@@ -434,7 +434,6 @@ void ServerReceive()
 					auxShotPosX << " | " << auxShotPosy << " HA DISPARADO EN LA DIRECCIÓN: " << auxDirectionInt << std::endl;
 				pack.clear();
 				pack << PROTOCOLO::SHOT << auxId << auxSala <<auxShotPosX << auxShotPosy << auxDirectionInt;
-				mutex.unlock();
 
 
 				for (int i = 0; i < playersConnecteds.size(); i++)
@@ -445,6 +444,8 @@ void ServerReceive()
 						playersConnecteds[i].Regular_Message.insert({ PROTOCOLO::SHOT, Mensaje(playersConnecteds[i].counterPacket, pack) });
 					}
 				}
+				mutex.unlock();
+				break;
 			}
 			case PROTOCOLO::DISCONECTED:			
 			{
@@ -925,8 +926,9 @@ void SendRegularPack()
 						if (socket.send(playersConnecteds[iterador].Regular_Message.find(auxProtocolo)->second.pack, playersConnecteds[iterador].IP_Adress, playersConnecteds[iterador].port) == sf::Socket::Done)
 						{
 							auxPacket = playersConnecteds[iterador].Regular_Message.find(auxProtocolo)->second.pack;
-							auxPacket >> auxId >> auxId >> auxShotPosX >> auxShotPosy >> auxDirectionInt;
-							std::cout << "Se envia el deisparo a la posicion: " << auxShotPosX << " | " << auxShotPosy << " En la direccion " << auxDirectionInt << std::endl;
+							auxPacket >> auxPacketInt;
+							auxPacket >> auxId >> auxPacketInt >> auxShotPosX >> auxShotPosy >> auxDirectionInt;
+							std::cout << "Se envia el disparo a la posicion: " << auxShotPosX << " | " << auxShotPosy << " En la direccion " << auxDirectionInt << std::endl;
 
 							mutex.lock();
 							playersConnecteds[iterador].Regular_Message.erase(auxProtocolo);
@@ -1535,11 +1537,11 @@ void ClientReceive()
 			case PROTOCOLO::SHOT:
 			{
 
-				packRecieve >> auxId << auxId;
+				packRecieve >> auxId >> auxSala;
 				packRecieve >> auxShotPosX >> auxShotPosy;
 				packRecieve >> auxDirectionInt;
 
-				std::cout << "EL USUARIO CONTRARIO HA DISPARADO DESDE LA POSICION: " <<
+				std::cout << "EL USUARIO CONTRARIO HA DISPARADO DESDE LA SALA: "<< auxSala << " LA POSICION: " <<
 					auxShotPosX << " | " << auxShotPosy << " HA DISPARADO EN LA DIRECCIÓN: " << auxDirectionInt << std::endl;
 
 				Direcciones aux = static_cast<Direcciones>(auxDirectionInt);
