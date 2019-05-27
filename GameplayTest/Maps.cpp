@@ -31,20 +31,20 @@ void Maps::InitSprites()
 	map1Sprite.setPosition(SCREEN_WIDTH / 2 - 100, SCREEN_HEIGHT / 2 - 200);
 
 	/////////////////////////////////////////////////////////////MAP 2
-	if (!map2Texture.loadFromFile("res/img/Button_Map2.png"))
+	/*if (!map2Texture.loadFromFile("res/img/Button_Map2.png"))
 	{
 		std::cout << "Cannot Load the image" << std::endl;
 	}
 	map2Sprite.setTexture(map2Texture);
-	map2Sprite.setPosition(SCREEN_WIDTH / 2 - 100, SCREEN_HEIGHT / 2 - 100);
+	map2Sprite.setPosition(SCREEN_WIDTH / 2 - 100, SCREEN_HEIGHT / 2 - 100);*/
 
 	/////////////////////////////////////////////////////////////MAP 3
-	if (!map3Texture.loadFromFile("res/img/Button_Map3.png"))
+	/*if (!map3Texture.loadFromFile("res/img/Button_Map3.png"))
 	{
 		std::cout << "Cannot Load the image" << std::endl;
 	}
 	map3Sprite.setTexture(map3Texture);
-	map3Sprite.setPosition(SCREEN_WIDTH / 2 - 100, SCREEN_HEIGHT / 2);
+	map3Sprite.setPosition(SCREEN_WIDTH / 2 - 100, SCREEN_HEIGHT / 2);*/
 
 	///////////////////////////////////////////////////////////// BACK
 	if (!backTexture.loadFromFile("res/img/Button_Back.png"))

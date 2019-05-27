@@ -414,28 +414,9 @@ void ServerReceive()
 			}
 			case PROTOCOLO::PONG:
 			{
-				mutex.lock();
-				if (playersConnecteds[getId(adress, port)].counterPing<=6)
-				{
-					playersConnecteds[getId(adress, port)].counterPing = 0;
-					std::cout << "Pongo el ping a 0" << std::endl;
-				}				
-				else 
-				{
-
-					///// ------- Enviamos Desconexion al resto de usuarios -------- ///////
-					pack << PROTOCOLO::DISCONECTED;
-					pack << playersConnecteds[getId(adress, port)].id;
-					
-					for (int i = 0; i < gamesProxy[playersConnecteds[getId(adress, port)].idPartidaActual].players.size() ; i++)
-					{
-						gamesProxy[playersConnecteds[getId(adress, port)].idPartidaActual].players[i].Critic_Message.insert({ PROTOCOLO::DISCONECTED,Mensaje(playersConnecteds[getId(adress, port)].id,pack) });
-					}
-
-
-					playersConnecteds.erase(playersConnecteds.begin() + getId(adress, port));
-
-				}
+				mutex.lock();				
+				playersConnecteds[getId(adress, port)].counterPing--;
+				std::cout << "Ping a --------------: " << playersConnecteds[getId(adress, port)].counterPing << std::endl;
 				mutex.unlock();
 				break;
 			}
@@ -528,18 +509,44 @@ void SendRegularPack()
 			//Realizamos ping
 			if ((timeInSecondsPingPong - playersConnecteds[iterador].startTime) > 5)
 			{
+//				std::cout << "toca hacer ping  descobectar" << std::endl;
 				playersConnecteds[iterador].startTime = timeInSecondsPingPong;
-				auxPacket.clear();
-				auxPacket << PROTOCOLO::PING;
-				status = socket.send(auxPacket, playersConnecteds[iterador].IP_Adress, playersConnecteds[iterador].port);
-				if (status == sf::Socket::Status::Done)
+				if (playersConnecteds[iterador].counterPing >= 6)
 				{
-					mutex.lock();
-					playersConnecteds[iterador].counterPing++;					
-					std::cout << "He enviado ping, jugador con id :" << playersConnecteds[iterador].id << " lleva : " << playersConnecteds[iterador].counterPing << std::endl;
-					mutex.unlock();
+					//Rellenmos packet
+					auxPacket.clear();
+					auxPacket << PROTOCOLO::DISCONECTED;
+					auxPacket << playersConnecteds[iterador].id;
+					//Metemos en los otros jugadores de la partida el mensaje de desconectado
+					for (int i = 0; i < gamesProxy[ playersConnecteds[iterador].idPartidaActual ].players.size(); i++)
+					{
+						if (gamesProxy[playersConnecteds[iterador].idPartidaActual].players[i].id != playersConnecteds[iterador].id)
+						{
+							//playersConnecteds[gamesProxy[playersConnecteds[iterador].idPartidaActual].players[i].id-1].Critic_Message.insert({ PROTOCOLO::DISCONECTED ,Mensaje(playersConnecteds[iterador].id,auxPacket) });
+							for (int j = 0; j < playersConnecteds.size(); j++)
+							{
+								if (playersConnecteds[j].id== gamesProxy[playersConnecteds[iterador].idPartidaActual].players[i].id)
+								{
+									playersConnecteds[j].Critic_Message.insert({ PROTOCOLO::DISCONECTED ,Mensaje(playersConnecteds[iterador].id,auxPacket) });
+								}
+							}
+						}
+					}
+					//std::cout << "toca rellenar el paquete a la gentre para que sepan q me piro" << std::endl;
 				}
-
+				else 
+				{					
+					auxPacket.clear();
+					auxPacket << PROTOCOLO::PING;
+					status = socket.send(auxPacket, playersConnecteds[iterador].IP_Adress, playersConnecteds[iterador].port);
+					if (status == sf::Socket::Status::Done)
+					{
+						mutex.lock();
+						playersConnecteds[iterador].counterPing++;
+						std::cout << "He enviado ping, jugador con id :" << playersConnecteds[iterador].id << " lleva : " << playersConnecteds[iterador].counterPing << std::endl;
+						mutex.unlock();
+					}
+				}
 			}
 
 			tonteria = playersConnecteds[iterador].Regular_Message.size();
@@ -766,10 +773,6 @@ void SendRegularPack()
 					case STARTGAME:
 					{
 						std::cout << "CONTESTANDO A STARTPLAY\n";
-						break;
-					}
-					case DISCONECTED:
-					{
 						break;
 					}
 					case MOVEMENT:
@@ -1021,6 +1024,12 @@ void SendRegularPack()
 //THREAD PAQUETES CRÍTICOS
 void SendCriticPack()
 {
+	//TIMER
+	clock_t startTimeDisconect;
+	clock_t endTimeDisconect;
+	clock_t clockTicksTakenDisconect;
+	double timeInSecondsDisconect;
+
 	//////////// ------------ VARIABLES A UTILIZAR ------------ ////////////
 	int iterador = 0;
 	int aux = 0;
@@ -1033,8 +1042,16 @@ void SendCriticPack()
 
 	//KILLED MONSTERS
 	int KilledMonsters;
-	startTimeRoomChange = clock();
+	//Timers
 
+	startTimeRoomChange = clock();
+	startTimeDisconect = clock();
+	endTimeDisconect = clock();
+
+
+	
+
+	clock_t startTime;
 	////std::cout << "Adress: " << adress << std::endl;
 	////std::cout << "Port: " << port << std::endl;
 
@@ -1052,6 +1069,12 @@ void SendCriticPack()
 		endTimeRoomChange = clock();
 		clockTicksTakenRoomChange = endTimeRoomChange - startTimeRoomChange;
 		timeInSecondsRoomChange = clockTicksTakenRoomChange / (double)CLOCKS_PER_SEC;
+
+		endTimeDisconect = clock();
+		clockTicksTakenDisconect = endTimeDisconect - startTimeDisconect;
+		timeInSecondsDisconect = clockTicksTakenDisconect / (double)CLOCKS_PER_SEC;
+
+
 		if (!playersConnecteds.empty())
 		{
 			tonteriaCritic = playersConnecteds[iterador].Critic_Message.size();
@@ -1096,15 +1119,17 @@ void SendCriticPack()
 
 					break;
 				}
-				case ROOMCHANGE:
-				{
-					
-					break;
-				}
 				case DISCONECTED:
 				{
-					////std::cout << "ENVIANDO EL CRITICO DE DISCONECTED. \n";
-					socket.send(playersConnecteds[iterador].Critic_Message.find(PROTOCOLO::STARTGAME)->second.pack, playersConnecteds[iterador].IP_Adress, playersConnecteds[iterador].port);
+					//std::cout << "Envio la desconsexin del jugador con id :" << playersConnecteds[iterador].Critic_Message.find(PROTOCOLO::DISCONECTED)->second.id << std::endl;
+					if (timeInSecondsDisconect>1)
+					{
+						startTimeDisconect = clock();
+						if (socket.send(playersConnecteds[iterador].Critic_Message.find(PROTOCOLO::DISCONECTED)->second.pack, playersConnecteds[iterador].IP_Adress, playersConnecteds[iterador].port) == sf::Socket::Status::Done)
+						{
+							std::cout << "Envio la desconsexin del jugador con id :" << playersConnecteds[iterador].Critic_Message.find(PROTOCOLO::DISCONECTED)->second.id << std::endl;
+						}
+					}
 					break;
 				}
 				default:

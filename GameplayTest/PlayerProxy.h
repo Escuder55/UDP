@@ -17,6 +17,7 @@ public:
 	int id_partida;
 	int counterPing;
 	float startTime=0;
+	float disconectMesage = 0;
 	std::string userName;
 	std::string password;
 	int skin;
