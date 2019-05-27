@@ -29,7 +29,7 @@ public:
 	int NumEnemigos;
 	int idPartidaActual;
 	int idSalaActual = 0;
-
+	bool desconectado = false;
 	PlayerProxy();
 	~PlayerProxy();
 };

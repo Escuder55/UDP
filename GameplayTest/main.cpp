@@ -74,7 +74,7 @@ int getId(sf::IpAddress _adres, unsigned short _port)
 std::multimap<int, Mensaje> paquetes_criticos;
 
 //MENSAJES NORMALES
-
+bool desconectar = false;
 //std::list<std::stack<Mensaje>> paquetes_normales;
 
 //LOGIN/REGISTER
@@ -446,6 +446,16 @@ void ServerReceive()
 					}
 				}
 			}
+			case PROTOCOLO::DISCONECTED:			
+			{
+				mutex.lock();
+				playersConnecteds[getId(adress, port)].Critic_Message.find(PROTOCOLO::DISCONECTED)->second.id = -1;;
+				//Borramos del playersconnected el jugador
+
+				std::cout << "----------------Seteo a -1 el id para que se borre" << std::endl;
+				mutex.unlock();
+				break;
+			}
 			default:
 					break;
 			}
@@ -518,7 +528,7 @@ void SendRegularPack()
 			{
 //				std::cout << "toca hacer ping  descobectar" << std::endl;
 				playersConnecteds[iterador].startTime = timeInSecondsPingPong;
-				if (playersConnecteds[iterador].counterPing >= 6)
+				if ((playersConnecteds[iterador].counterPing >= 3) && (!playersConnecteds[iterador].desconectado))
 				{
 					//Rellenmos packet
 					auxPacket.clear();
@@ -534,12 +544,18 @@ void SendRegularPack()
 							{
 								if (playersConnecteds[j].id== gamesProxy[playersConnecteds[iterador].idPartidaActual].players[i].id)
 								{
-									playersConnecteds[j].Critic_Message.insert({ PROTOCOLO::DISCONECTED ,Mensaje(playersConnecteds[iterador].id,auxPacket) });
+									if (playersConnecteds[j].Critic_Message.count(PROTOCOLO::DISCONECTED)<1)
+									{
+										playersConnecteds[j].Critic_Message.insert({ PROTOCOLO::DISCONECTED ,Mensaje(playersConnecteds[iterador].id,auxPacket) });
+									}									
 								}
 							}
 						}
 					}
 					//std::cout << "toca rellenar el paquete a la gentre para que sepan q me piro" << std::endl;
+					//Marcamos el jugador para que cuando confirmen que se ha desconectado borrarlo
+					playersConnecteds[iterador].desconectado = true;
+
 				}
 				else 
 				{					
@@ -1132,9 +1148,17 @@ void SendCriticPack()
 					if (timeInSecondsDisconect>1)
 					{
 						startTimeDisconect = clock();
-						if (socket.send(playersConnecteds[iterador].Critic_Message.find(PROTOCOLO::DISCONECTED)->second.pack, playersConnecteds[iterador].IP_Adress, playersConnecteds[iterador].port) == sf::Socket::Status::Done)
+						if (playersConnecteds[iterador].Critic_Message.find(PROTOCOLO::DISCONECTED)->second.id==-1)
 						{
-							std::cout << "Envio la desconsexin del jugador con id :" << playersConnecteds[iterador].Critic_Message.find(PROTOCOLO::DISCONECTED)->second.id << std::endl;
+							playersConnecteds[iterador].Critic_Message.erase(PROTOCOLO::DISCONECTED);
+							std::cout << "----------------Borro el packet con id -1" << std::endl;
+						}
+						else
+						{
+							if (socket.send(playersConnecteds[iterador].Critic_Message.find(PROTOCOLO::DISCONECTED)->second.pack, playersConnecteds[iterador].IP_Adress, playersConnecteds[iterador].port) == sf::Socket::Status::Done)
+							{
+								std::cout << "--------------Envio la desconsexion del jugador con id :" << playersConnecteds[iterador].Critic_Message.find(PROTOCOLO::DISCONECTED)->second.id << std::endl;
+							}
 						}
 					}
 					break;
@@ -1188,9 +1212,10 @@ void serverMain()
 
 	std::thread threadCritic(&SendCriticPack);
 	threadCritic.detach();
+	std::vector<PlayerProxy>::iterator it = playersConnecteds.begin();
 	while (1)
 	{
-
+		
 	}
 }
 
@@ -1521,6 +1546,19 @@ void ClientReceive()
 				myGameScene->AddNewBullet(auxShotPosX, auxShotPosy, aux);
 
 				break;
+			}
+			case PROTOCOLO::DISCONECTED :
+			{
+				currentScene->partnerSala = -2;
+				packRecieve.clear();
+				packRecieve << PROTOCOLO::DISCONECTED;
+				//enviamos
+				if (socket.send(packRecieve, IP_CLASE, PORT) == sf::Socket::Status::Done)
+				{
+					std::cout << "HEMOS CONTESTADO AL DISCONNECT PARA QUE DEJE DE ENVIAR" << std::endl;
+				}
+				std::cout << "---------El Compañero se ha desconectado---------" << std::endl;
+				break; 
 			}
 			default:
 				break;
