@@ -9,7 +9,7 @@ Game::Game()
 
 Game::Game(CharacterType myCharacterType, float _posX, float _posY, sf::UdpSocket *sock, int skin)
 {
-	
+	finishSending = true;
 	startTime = clock();
 	//Guardamos socket
 	socket = sock;
@@ -196,7 +196,7 @@ void Game::InitText()
 TypeScene Game::DrawScene()
 {
 	sf::Socket::Status status;
-	while (window.isOpen())
+	while (window.isOpen() && finishSending)
 	{
 		endTime = clock();
 		clockTicksTaken = endTime - startTime;
@@ -362,7 +362,9 @@ TypeScene Game::DrawScene()
 
 		window.display();
 	}
-	
+	window.close();
+	myTypeScene = TypeScene::GOTO_MENU;
+	std::cout << "Me cago en dios ya coño ! " << std::endl;
 	return myTypeScene;
 }
 
@@ -472,7 +474,7 @@ void Game::DrawText()
 
 void Game::UpdateHUD(int _live, int _ID_Sala)
 {
-	HUDText = "PLAYER 2(ID): " + std::to_string(partnerID) + "		LIVE: " + std::to_string(_live) + "		ROOM: " + std::to_string(partnerSala);
+	HUDText = "PLAYER 2(ID): " + std::to_string(partnerID) + "		LIVE: " + std::to_string(partnerLive) + "		ROOM: " + std::to_string(partnerSala);
 	PartnerText.setString(HUDText);
 }
 

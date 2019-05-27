@@ -10,6 +10,7 @@ public:
 
 	//ATTRIBUTES
 	sf::IpAddress IP_Adress;
+	bool isDead=false;
 	unsigned short port;
 	int id;
 	int id_cuenta;

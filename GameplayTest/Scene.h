@@ -43,7 +43,7 @@ public:
 	void UpdatePartnerPosition(float _posX, float _posY);
 	int currentBackground;
 	int partnerID;
-	int partnerLive = 3;
+	int partnerLive = 1;
 
 	//INTERPOLATION
 	void lerp(float Xinicial, float Xfinal, float Yinicial, float Yfinal, float deltaTime, int StartMovement);

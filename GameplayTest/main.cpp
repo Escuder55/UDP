@@ -546,6 +546,12 @@ void ServerReceive()
 				mutex.unlock();
 				break;
 			}
+			case PROTOCOLO::HITTED:
+			{
+				playersConnecteds[getId(adress, port)].Critic_Message.find(PROTOCOLO::HITTED)->second.id = -1;
+				std::cout << "le cambiamos el id a -1 para que lo borre!!!!!!!!!!!!" << std::endl;
+				break;
+			}
 			default:
 					break;
 			}
@@ -612,7 +618,7 @@ void SendRegularPack()
 		timeInSecondsPingPong = clockTicksTakenPingPong / (double)CLOCKS_PER_SEC;
 
 		if (!playersConnecteds.empty())
-		{
+		{			
 			//Realizamos ping
 			if ((timeInSecondsPingPong - playersConnecteds[iterador].startTime) > 5)
 			{
@@ -890,82 +896,119 @@ void SendRegularPack()
 					}
 					case MOVEMENT:
 					{
-						auxPacket = playersConnecteds[iterador].Regular_Message.find(auxProtocolo)->second.pack;
-						for (int i = 0; i < 5; i++)
+						if (!playersConnecteds[iterador].isDead)
 						{
-							auxPacket >> posX[i];
-							auxPacket >> posY[i];
-
 							OKMovement = true;
-						}
-
-						//PARA SABER A DONDE HA TIRADO AL PRINCIPIO
-						if (posX[0] == posX[1])
-						{
-							startMovement = 0;
-						}
-						else
-						{
-							startMovement = 1;
-						}
-
-						if (OKMovement)
-						{
-
-							mutex.lock();
-							//ACTUALIZO LA POSICION DEL JUGADOR QUE HA ENVIADO EL MOVIMIENTO
-							playersConnecteds[iterador].posX = posX[4];
-							playersConnecteds[iterador].posY = posY[4];
-							mutex.unlock();
-
-							auxPacket.clear();
-							auxPacket << PROTOCOLO::MOVEMENT;
-							auxPacket << playersConnecteds[iterador].Regular_Message.find(PROTOCOLO::MOVEMENT)->second.id;
-							status = socket.send(auxPacket, playersConnecteds[iterador].IP_Adress, playersConnecteds[iterador].port);
-							if (status == sf::Socket::Done)
+							auxPacket = playersConnecteds[iterador].Regular_Message.find(auxProtocolo)->second.pack;
+							for (int i = 0; i < 5; i++)
 							{
-								//ELIMINAMOS LOS PAQUETES ANTERIORES
-								for (std::multimap<PROTOCOLO, Mensaje>::iterator it = playersConnecteds[iterador].Regular_Message.begin(); it != playersConnecteds[iterador].Regular_Message.end(); ++it)
+								auxPacket >> posX[i];
+								auxPacket >> posY[i];
+
+								if (colissionEnemies(posX[i], posX[i], playersConnecteds[iterador].idSalaActual))
 								{
-									if ((*it).first == PROTOCOLO::MOVEMENT)
-									{
-										if ((*it).second.id < playersConnecteds[iterador].Regular_Message.find(PROTOCOLO::MOVEMENT)->second.id)
-										{
-											playersConnecteds[iterador].Regular_Message.erase(it);
-										}
-									}
+									OKMovement = false;
 								}
 
-								std::multimap<PROTOCOLO, Mensaje>::iterator it2 = playersConnecteds[iterador].Regular_Message.find(PROTOCOLO::MOVEMENT);
-								playersConnecteds[iterador].Regular_Message.erase(it2);
-								
-								//Enviamos a todos los otros jugadores esta info////////////////////////////////////////////
-								//Rellenamos paquete
+							}
+
+							//PARA SABER A DONDE HA TIRADO AL PRINCIPIO
+							if (posX[0] == posX[1])
+							{
+								startMovement = 0;
+							}
+							else
+							{
+								startMovement = 1;
+							}
+
+							if (OKMovement)
+							{
+
+								mutex.lock();
+								//ACTUALIZO LA POSICION DEL JUGADOR QUE HA ENVIADO EL MOVIMIENTO
+								playersConnecteds[iterador].posX = posX[4];
+								playersConnecteds[iterador].posY = posY[4];
+								mutex.unlock();
+
 								auxPacket.clear();
-								auxPacket << PROTOCOLO::TEAMPOSITION;
-								auxPacket << playersConnecteds[iterador].id;
-								auxPacket << playersConnecteds[iterador].posX;
-								auxPacket << playersConnecteds[iterador].posY;
-								auxPacket << startMovement;
-								for (int i = 0; i < gamesProxy.size(); i++)
+								auxPacket << PROTOCOLO::MOVEMENT;
+								auxPacket << playersConnecteds[iterador].Regular_Message.find(PROTOCOLO::MOVEMENT)->second.id;
+								status = socket.send(auxPacket, playersConnecteds[iterador].IP_Adress, playersConnecteds[iterador].port);
+								if (status == sf::Socket::Done)
+								{
+									//ELIMINAMOS LOS PAQUETES ANTERIORES
+									for (std::multimap<PROTOCOLO, Mensaje>::iterator it = playersConnecteds[iterador].Regular_Message.begin(); it != playersConnecteds[iterador].Regular_Message.end(); ++it)
+									{
+										if ((*it).first == PROTOCOLO::MOVEMENT)
+										{
+											if ((*it).second.id < playersConnecteds[iterador].Regular_Message.find(PROTOCOLO::MOVEMENT)->second.id)
+											{
+												playersConnecteds[iterador].Regular_Message.erase(it);
+											}
+										}
+									}
+
+									std::multimap<PROTOCOLO, Mensaje>::iterator it2 = playersConnecteds[iterador].Regular_Message.find(PROTOCOLO::MOVEMENT);
+									playersConnecteds[iterador].Regular_Message.erase(it2);
+
+									//Enviamos a todos los otros jugadores esta info////////////////////////////////////////////
+									//Rellenamos paquete
+									auxPacket.clear();
+									auxPacket << PROTOCOLO::TEAMPOSITION;
+									auxPacket << playersConnecteds[iterador].id;
+									auxPacket << playersConnecteds[iterador].posX;
+									auxPacket << playersConnecteds[iterador].posY;
+									auxPacket << startMovement;
+									for (int i = 0; i < gamesProxy.size(); i++)
+									{
+										if (gamesProxy[i].id == playersConnecteds[iterador].idPartidaActual)
+										{
+											//Recorremos el vector de jugadores introduciendo el packet que deberemos enviar
+											for (int j = 0; j < gamesProxy[i].players.size(); j++)
+											{
+												if (gamesProxy[i].players[j].id != playersConnecteds[iterador].id)
+												{
+													playersConnecteds[gamesProxy[i].players[j].id - 1].Regular_Message.insert({ PROTOCOLO::TEAMPOSITION, Mensaje(playersConnecteds[iterador].id,auxPacket) });
+												}
+											}
+										}
+									}
+									//////////////////////////////////////////////////////////////////////////////////////////
+								}
+								else
+								{
+									//std::cout << "No pude enviar el movimiento acumulado" << std::endl;
+								}
+							}
+							else
+							{
+								playersConnecteds[iterador].isDead = true;
+								std::cout << "Ha collisionado" << std::endl;
+								auxPacket.clear();
+								auxPacket << PROTOCOLO::HITTED;
+								mutex.lock();
+								playersConnecteds[iterador].Critic_Message.insert({ PROTOCOLO::HITTED ,Mensaje(playersConnecteds[iterador].id,auxPacket) });
+								mutex.unlock();
+								auxPacket.clear();
+								auxPacket << PROTOCOLO::DISCONECTED;
+								//AVISAMOS A LOS OTROS PARA QUE NO LO PINTEN
+								/*for (int i = 0; i < gamesProxy.size(); i++)
 								{
 									if (gamesProxy[i].id == playersConnecteds[iterador].idPartidaActual)
 									{
 										//Recorremos el vector de jugadores introduciendo el packet que deberemos enviar
 										for (int j = 0; j < gamesProxy[i].players.size(); j++)
 										{
-											if (gamesProxy[i].players[j].id != playersConnecteds[iterador].id) 
+											if (gamesProxy[i].players[j].id != playersConnecteds[iterador].id)
 											{
-												playersConnecteds[gamesProxy[i].players[j].id-1].Regular_Message.insert({ PROTOCOLO::TEAMPOSITION, Mensaje(playersConnecteds[iterador].id,auxPacket) });
+												playersConnecteds[gamesProxy[i].players[j].id - 1].Critic_Message.insert({ PROTOCOLO::DISCONECTED, Mensaje(playersConnecteds[iterador].id,auxPacket) });
 											}
 										}
 									}
-								}
-								//////////////////////////////////////////////////////////////////////////////////////////
-							}
-							else
-							{
-								//std::cout << "No pude enviar el movimiento acumulado" << std::endl;
+								}*/
+								OKMovement = true;
+
 							}
 						}
 						break;
@@ -1214,6 +1257,11 @@ void SendCriticPack()
 					aux = playersConnecteds[iterador].Critic_Message.count(PROTOCOLO::STARTGAME);
 					auxProtocolo = PROTOCOLO::STARTGAME;
 				}
+				if (aux < playersConnecteds[iterador].Critic_Message.count(PROTOCOLO::HITTED))
+				{
+					aux = playersConnecteds[iterador].Critic_Message.count(PROTOCOLO::HITTED);
+					auxProtocolo = PROTOCOLO::HITTED;
+				}
 
 				switch (auxProtocolo)
 				{
@@ -1258,6 +1306,28 @@ void SendCriticPack()
 					}
 					break;
 				}
+				case HITTED:
+				{
+					if (timeInSecondsRoomChange > 2.5)
+					{
+						startTimeRoomChange = clock();
+						//std::cout << "ENVIANDO EL CRITICO DE START GAME. \n";
+						mutex.lock();
+						if (playersConnecteds[iterador].Critic_Message.find(PROTOCOLO::HITTED)->second.id != -1)
+						{
+							socket.send(playersConnecteds[iterador].Critic_Message.find(PROTOCOLO::HITTED)->second.pack, playersConnecteds[iterador].IP_Adress, playersConnecteds[iterador].port);
+
+						}
+						else
+						{
+							playersConnecteds[iterador].Critic_Message.erase(PROTOCOLO::HITTED);
+
+							std::cout << "-----------------------------------------------------Aqui" << std::endl;
+						}
+						mutex.unlock();
+					}
+					break;
+				}
 				default:
 				{
 					////std::cout << "BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB\n";
@@ -1297,7 +1367,8 @@ void serverMain()
 	else
 	{
 	}
-
+	//Inicializamo smonstruos
+	initializeEnemies();
 	//THREAD RECEIVE
 	std::thread threadServer(&ServerReceive);
 	threadServer.detach();
@@ -1376,7 +1447,6 @@ void ClientReceive()
 				}
 				else
 				{
-
 					currentScene->finishSending = true;
 					sceneState = TypeScene::GOTO_LOG_IN;
 				}
@@ -1655,6 +1725,16 @@ void ClientReceive()
 				std::cout << "---------El Compañero se ha desconectado---------" << std::endl;
 				break; 
 			}
+			case PROTOCOLO::HITTED:
+			{
+				currentScene->finishSending = false;
+				sceneState = TypeScene::GOTO_MENU;
+				std::cout << "Recive bien el hhitted" << std::endl;
+				packRecieve.clear();
+				packRecieve << PROTOCOLO::HITTED;
+				socket.send(packRecieve, IP_CLASE, PORT);
+				break;
+			}
 			default:
 				break;
 			}
@@ -1755,7 +1835,8 @@ void clienteMain()
 			break;
 
 		case PLAY:
-			currentScene->DrawScene();		
+			sceneState = currentScene->DrawScene();
+			
 
 		case EXIT:
 			finish = true;
@@ -1807,21 +1888,6 @@ void clienteMain()
 		}
 	}
 
-	/*//std::cout << "Escoge un personaje del 1 al 8: \n" << std::endl;
-	std::cin >> answer;
-
-	if (answer == "1")myCharacterType = 1;
-	else if (answer == "2")myCharacterType = 2;
-	else if (answer == "3")myCharacterType = 3;
-	else if (answer == "4")myCharacterType = 4;
-	else if (answer == "5")myCharacterType = 5;
-	else if (answer == "6")myCharacterType = 6;
-	else if (answer == "7")myCharacterType = 7;
-	else if (answer == "8")myCharacterType = 8;*/
-
-	//currentScene = new Game(static_cast<CharacterType>(myCharacterType));
-
-	//currentScene->DrawScene();	
 }
 
 void main()
