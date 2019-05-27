@@ -222,7 +222,7 @@ TypeScene Game::DrawScene()
 			if (myCharacter->changeRoomToDown)
 			{
 				if (timeInSeconds > 1) 
-				{
+				{ 
 					startTime = clock();
 					GamePack.clear();
 					GamePack << PROTOCOLO::ROOMCHANGE;
@@ -442,6 +442,7 @@ void Game::DrawSprites()
 	{
 		window.draw(partner);
 	}	
+	//std::cout << "MY SALA : " << mySala <<  "   PARTNER SALA: " << partnerSala << std::endl;;
 }
 
 void Game::DrawEnemies()

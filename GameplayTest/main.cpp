@@ -382,22 +382,34 @@ void ServerReceive()
 				pack >> auxSala;
 
 				playersConnecteds[getId(adress, port)].idSalaActual = auxSala;
+
+				pack.clear();
+				pack << PROTOCOLO::ROOMCHANGEACCEPTED << auxSala;
+				playersConnecteds[getId(adress, port)].Regular_Message.insert({ PROTOCOLO::ROOMCHANGEACCEPTED,Mensaje((getId(adress, port) + 1),pack) });
+
 				for (int i = 0; i < gamesProxy.size(); i++)
 				{
 					if (playersConnecteds[getId(adress, port)].idPartidaActual== gamesProxy[i].id)
 					{
 						for (int j = 0; j < gamesProxy[i].players.size(); j++)
 						{
-							pack.clear();
-							pack << PROTOCOLO::ROOMCHANGE;
-							pack << (getId(adress, port) + 1);
-							pack << auxSala;
-							playersConnecteds[gamesProxy[i].players[j].id - 1].Regular_Message.insert({PROTOCOLO::ROOMCHANGE,Mensaje((getId(adress, port) + 1),pack)});
+							if (gamesProxy[i].players[j].id != playersConnecteds[getId(adress, port)].id) 
+							{
+								mutex.lock();
+								pack.clear();
+								pack << PROTOCOLO::ROOMCHANGE;
+								pack << (getId(adress, port) + 1);
+								pack << auxSala;
+								std::cout << "La id del que cambia " << getId(adress, port) + 1 << std::endl;
+								playersConnecteds[gamesProxy[i].players[j].id - 1].Regular_Message.insert({ PROTOCOLO::ROOMCHANGE,Mensaje((getId(adress, port) + 1),pack) });
+								mutex.unlock();
+							}
+							
 						}
 					}
 				}
 
-				std::cout << "movemos al jugador con id: " << getId(adress, port) << " a la sala : " << auxSala << std::endl;			
+				std::cout << "movemos al jugador con id: " << getId(adress, port)+1 << " a la sala : " << auxSala << std::endl;			
 				break;
 			}
 			case PROTOCOLO::PONG:
@@ -558,6 +570,12 @@ void SendRegularPack()
 				{
 					aux = playersConnecteds[iterador].Regular_Message.count(PROTOCOLO::ROOMCHANGE);
 					auxProtocolo = PROTOCOLO::ROOMCHANGE;
+					//std::cout << "3" << std::endl;
+				}
+				if (aux < playersConnecteds[iterador].Regular_Message.count(PROTOCOLO::ROOMCHANGEACCEPTED))
+				{
+					aux = playersConnecteds[iterador].Regular_Message.count(PROTOCOLO::ROOMCHANGEACCEPTED);
+					auxProtocolo = PROTOCOLO::ROOMCHANGEACCEPTED;
 					//std::cout << "3" << std::endl;
 				}
 				if (aux < playersConnecteds[iterador].Regular_Message.count(PROTOCOLO::DISCONECTED))
@@ -857,8 +875,23 @@ void SendRegularPack()
 					{
 						socket.send(playersConnecteds[iterador].Regular_Message.find(PROTOCOLO::ROOMCHANGE)->second.pack, playersConnecteds[iterador].IP_Adress, playersConnecteds[iterador].port);
 						//Enviamos confirmacion
+						auxPacket = playersConnecteds[iterador].Regular_Message.find(PROTOCOLO::ROOMCHANGE)->second.pack;
+						auxPacket >> auxPacketInt;
+						std::cout << "La ID: " << auxPacketInt << std::endl;
 						playersConnecteds[iterador].Regular_Message.erase(PROTOCOLO::ROOMCHANGE);
 						std::cout << "Enviamos la confirmacion del cambio de sala" << std::endl;
+						break;
+					}
+					case ROOMCHANGEACCEPTED:
+					{
+						socket.send(playersConnecteds[iterador].Regular_Message.find(PROTOCOLO::ROOMCHANGEACCEPTED)->second.pack, playersConnecteds[iterador].IP_Adress, playersConnecteds[iterador].port);
+						playersConnecteds[iterador].Regular_Message.erase(PROTOCOLO::ROOMCHANGEACCEPTED);
+						//Enviamos confirmacion
+						/*auxPacket = playersConnecteds[iterador].Regular_Message.find(PROTOCOLO::ROOMCHANGE)->second.pack;
+						auxPacket >> auxPacketInt;
+						std::cout << "La ID: " << auxPacketInt << std::endl;
+						playersConnecteds[iterador].Regular_Message.erase(PROTOCOLO::ROOMCHANGE);
+						std::cout << "Enviamos la confirmacion del cambio de sala" << std::endl;*/
 						break;
 					}
 					case SHOT:
@@ -1140,12 +1173,12 @@ void ClientReceive()
 	sf::IpAddress auxIP;
 	unsigned short auxport;
 	sf::Packet packRecieve;
-	int auxint=-1;
+	int auxint = -1;
 	int auxSala = -1;
 	int startMovement = 0;
 	int salaAnterior = 0;
 
-	
+
 	while (true)
 	{
 
@@ -1290,14 +1323,14 @@ void ClientReceive()
 
 				if (startMovement == 0)
 				{
-					std::cout << "El jugador ha empezado por el eje vertical" << std::endl;
+					//std::cout << "El jugador ha empezado por el eje vertical" << std::endl;
 				}
 				else
 				{
-					std::cout << "El jugador ha empezado por el eje horizontal" << std::endl;
+					//std::cout << "El jugador ha empezado por el eje horizontal" << std::endl;
 				}
-				
-				std::cout << "Tengo que empezar por lo siguiente: " << startMovement << std::endl;
+
+				//std::cout << "Tengo que empezar por lo siguiente: " << startMovement << std::endl;
 				//currentScene->UpdatePartnerPosition(posX, posY);
 				currentScene->lerp(currentScene->partner.getPosition().x, posX, currentScene->partner.getPosition().y, posY, 0.4f, startMovement);
 				//Actualizar Posicion avatrares
@@ -1311,8 +1344,8 @@ void ClientReceive()
 			{
 				packRecieve >> auxint;
 				packRecieve >> auxSala;
-				
-				if (proxy.id == auxint)
+
+				/*if (proxy.id == auxint)
 				{
 					std::cout << "Me he de cambiar yo" <<" Sala : "<< auxSala<< std::endl;
 					switch (currentScene->mySala)
@@ -1361,16 +1394,71 @@ void ClientReceive()
 					myGameScene->myCharacter->changeRoomToLeft = false;
 					myGameScene->myCharacter->changeRoomToRight = false;
 					myGameScene->myCharacter->changeRoomToUp = false;
-				}
-				else 
-				{
-					std::cout << "No me he de cambiar" << std::endl;
-					currentScene->partnerSala = auxSala;
-				}
+				}*/
+
+				std::cout << "No me he de cambiar" << std::endl;
+				currentScene->partnerSala = auxSala;
+
 
 				//idjugador sala
 				break;
 			}
+			case PROTOCOLO::ROOMCHANGEACCEPTED:
+			{
+				std::cout << "RECIBIDA LA CONFIRMACION DE CAMBIO DE SALA." << std::endl;
+
+				packRecieve >> auxSala;
+
+				
+					std::cout << "Me he de cambiar yo" << " Sala : " << auxSala << std::endl;
+					switch (currentScene->mySala)
+					{
+					case 0:
+					{
+						if (auxSala == 1)
+						{
+							myGameScene->myCharacter->CharacterChangeRoom(80, myGameScene->myCharacter->characterPosition.y);
+						}
+						else if (auxSala == 2)
+						{
+							myGameScene->myCharacter->CharacterChangeRoom(myGameScene->myCharacter->characterPosition.x, 80);
+						}
+						break;
+					}
+					case 1:
+					{
+						myGameScene->myCharacter->CharacterChangeRoom(SCREEN_WIDTH - 80, myGameScene->myCharacter->characterPosition.y);
+						break;
+					}
+					case 2:
+					{
+						if (auxSala == 0)
+						{
+							myGameScene->myCharacter->CharacterChangeRoom(myGameScene->myCharacter->characterPosition.x, (SCREEN_HEIGHT - 80 - SPRITE_CHARACTER_HEIGHT));
+						}
+						else if (auxSala == 3)
+						{
+							myGameScene->myCharacter->CharacterChangeRoom(80, myGameScene->myCharacter->characterPosition.y);
+						}
+						break;
+					}
+					case 3:
+					{
+						myGameScene->myCharacter->CharacterChangeRoom(SCREEN_WIDTH - 80, myGameScene->myCharacter->characterPosition.y);
+						break;
+					}
+					default:
+						break;
+					}
+
+					currentScene->mySala = auxSala;
+					proxy.idSalaActual = auxSala;
+					myGameScene->myCharacter->changeRoomToDown = false;
+					myGameScene->myCharacter->changeRoomToLeft = false;
+					myGameScene->myCharacter->changeRoomToRight = false;
+					myGameScene->myCharacter->changeRoomToUp = false;
+					break;
+				}
 			case PROTOCOLO::PING:
 			{
 				packRecieve.clear();
@@ -1386,20 +1474,22 @@ void ClientReceive()
 				packRecieve >> auxShotPosX >> auxShotPosy;
 				packRecieve >> auxDirectionInt;
 
-				std::cout << "EL USUARIO CONTRARIO HA DISPARADO DESDE LA POSICION: " <<
-					auxShotPosX << " | " << auxShotPosy << " HA DISPARADO EN LA DIRECCIÓN: " << auxDirectionInt << std::endl;
+				//std::cout << "EL USUARIO CONTRARIO HA DISPARADO DESDE LA POSICION: " <<
+					//auxShotPosX << " | " << auxShotPosy << " HA DISPARADO EN LA DIRECCIÓN: " << auxDirectionInt << std::endl;
 
 				Direcciones aux = static_cast<Direcciones>(auxDirectionInt);
 				myGameScene->AddNewBullet(auxShotPosX, auxShotPosy, aux);
-				
+
 				break;
 			}
 			default:
 				break;
 			}
+			}
 		}
 	}
-}
+
+
 
 //////////////////////////////////////////
 ////////////////////////////////////////// CLIENT
